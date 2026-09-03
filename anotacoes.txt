@@ -1,0 +1,21 @@
+
+
+Anotacoes da aula de TCC
+
+## Planejamento do desenvolvimento do TCC 2
+
+  Scrapping e coleta de dados
+
+    A ideia dessa etapa e criar um scrapping para coletar os dados em janelas de cinco em cinco minutos
+    Juntamente ao scrapping ira ser criado um servico em background que roda a cada 5 minutos, ele ira rodar em
+    background na VM da oracle. Os dados coletados pelo web scraping serao armazenados dentro de um banco de dados postgres
+    aonde este ira ser acessado via SSH pelo programa de treinamento dos modelos de predicao.
+
+    - resalvas importantes sobre esta etapa:
+      os dados coletados irao ser normalizados utilizando dos retornos logaritmicos, assim como foi realizado no trabalho
+      de tayna araujo e paulo barbosa. Os dados irao ser classificados utilizando diferentes limiares para o desvio padrao, assim
+      gerando amostras distintas dos dados com diferentes distribuicoes entre as classes.
+
+  Criacao dos modelos de predicao ingenuos
+
+    Aqui ira ser implementado os modelos de predicao aleatorio e de persistencia
