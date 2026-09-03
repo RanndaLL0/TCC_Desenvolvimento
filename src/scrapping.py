@@ -1,5 +1,3 @@
-"""Coleta os candles do BTCUSDT em janelas de 5 minutos na API da Binance."""
-
 import csv
 import json
 import os
@@ -22,8 +20,6 @@ INTERVALOS_MS = {
     "1d": 86_400_000,
 }
 
-# Campos que a API devolve por candle, na ordem (o ultimo campo do array e
-# marcado como "ignore" na documentacao da Binance, entao fica de fora).
 CABECALHO = [
     "open_time",
     "open",
@@ -36,12 +32,13 @@ CABECALHO = [
     "trades",
     "taker_buy_base",
     "taker_buy_quote",
+    "ignore"
 ]
 
 SYMBOL = "BTCUSDT"
 INTERVALO = "5m"
 INICIO = "2023-01-01"
-SAIDA = "../dados/btcusdt.csv"
+SAIDA = "dados/btcusdt.csv"
 
 
 # Essas funcoes sao so utilitarios para converter tempo para milisegundos
