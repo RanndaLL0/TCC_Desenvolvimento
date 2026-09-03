@@ -1,4 +1,5 @@
 import csv
+import configparser
 import json
 import os
 import time
@@ -32,18 +33,23 @@ CABECALHO = [
     "trades",
     "taker_buy_base",
     "taker_buy_quote",
-    "ignore"
 ]
 
 SYMBOL = "BTCUSDT"
 INTERVALO = "5m"
 INICIO = "2023-01-01"
-SAIDA = "dados/btcusdt.csv"
 
+config = configparser.ConfigParser()
+config.read("config.ini")
+
+PG_HOST = config.get("postgres", "host")
+PG_PORT = config.get("postgres", "port")
+PG_USER = config.get("postgres", "user")
+PG_PASSWORD = config.get("postgres", "password")
+PG_DB = config.get("postgres", "database")
 
 # Essas funcoes sao so utilitarios para converter tempo para milisegundos
 # ( A API exige )
-
 def agora_milisegundos() -> int:
     return int(time.time() * 1000)
 
