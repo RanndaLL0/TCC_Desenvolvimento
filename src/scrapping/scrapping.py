@@ -34,7 +34,7 @@ INICIO = "2017-08-17"
 # Entao as conexões e os comandos executados no banco pelo scrapping sao todos
 # Comandos nativos que rodam no psql
 config = configparser.ConfigParser(inline_comment_prefixes=None)
-config.read("config.ini")
+config.read("../config.ini")
 
 #O arquivo de configuracoes TOML nao foi posto no repositorio
 PG_HOST = config.get("postgres", "host")
