@@ -122,22 +122,21 @@ def inserir_batch(linhas_poggers):
         text=True,
     )
 
+# O mais foi posto dentro de sincronizar para o processo
+# de busca e insercao estar visivel para o servico em background
+def sincronizar(cursor_ms, agora_ms=None):
+    if agora_ms is None:
+        agora_ms = agora_milisegundos()
 
-def main():
-    passo_ms = FECHAMENTO
-    cursor = para_ms(INICIO)
-    agora = agora_milisegundos()
-
-
-    while cursor < agora:
-        lote = buscar(cursor)
+    while cursor_ms < agora_ms:
+        lote = buscar(cursor_ms)
         if not lote:
             break
 
         linhas = []
 
         for candle in lote:
-            if int(candle[6]) < agora:
+            if int(candle[6]) < agora_ms:
                 valores = [
                     para_iso(int(candle[0])),
                     str(candle[1]),
@@ -158,10 +157,13 @@ def main():
         if linhas:
             inserir_batch("\n".join(linhas))
 
-        cursor = int(lote[-1][0]) + passo_ms
+        cursor_ms = int(lote[-1][0]) + FECHAMENTO
 
         #Folga para evitar timeout
         time.sleep(0.25)
+
+def main():
+    sincronizar(para_ms(INICIO))
 
 
 if __name__ == "__main__":
