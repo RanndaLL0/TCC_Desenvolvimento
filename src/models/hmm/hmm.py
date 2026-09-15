@@ -1,48 +1,39 @@
 import sys
-import numpy as np
+import cupy as np
 sys.path.append("../../../")
-from database.index import create_connection
+from database.index import pegar_dados
 
 N = 3
 M = 3
-T = 972_817
 
-PI = np.array([0.33, 0.33, 0.34])
 
-A = np.array([[0.80, 0.10, 0.10],
-              [0.10, 0.80, 0.10],
-              [0.10, 0.10, 0.80]])
+# T = 972_817
 
-B = np.array([[0.70, 0.20, 0.10],
-              [0.10, 0.70, 0.20],
-              [0.20, 0.10, 0.70]])
+# PI = np.array([0.33, 0.33, 0.34])
 
-# Gera uma sequencia de observações de tamanho T (tamanho da base)
-# Ira servir como uma função de debug caso os dados gere dificuldades
-# para a interpretacao do que esta acontecendo.
-def generator(T, pi=PI, A=A, B=B):
-    rng = np.random.default_rng()
-    y = np.empty(T, dtype=np.int64)
-    states = np.empty(T, dtype=np.int64)
+# A = np.array([[0.80, 0.10, 0.10],
+#               [0.10, 0.80, 0.10],
+#               [0.10, 0.10, 0.80]])
 
-    q = rng.choice(N, p=pi)
-    for t in range(T):
-        y[t] = rng.choice(M, p=B[q])
-        states[t] = q
-        q = rng.choice(N, p=A[q])
+# B = np.array([[0.70, 0.20, 0.10],
+#               [0.10, 0.70, 0.20],
+#               [0.20, 0.10, 0.70]])
 
-    return y, states
+# # Gera uma sequencia de observações de tamanho T (tamanho da base)
+# # Ira servir como uma função de debug caso os dados gere dificuldades
+# # para a interpretacao do que esta acontecendo.
+# def generator(T, pi=PI, A=A, B=B):
+#     rng = np.random.default_rng()
+#     y = np.empty(T, dtype=np.int64)
+#     states = np.empty(T, dtype=np.int64)
 
-def pegar_dados(): 
-    conn = create_connection()
+#     q = rng.choice(N, p=pi)
+#     for t in range(T):
+#         y[t] = rng.choice(M, p=B[q])
+#         states[t] = q
+#         q = rng.choice(N, p=A[q])
 
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT close_normalized FROM normalize_data ORDER BY open_time LIMIT 1000")
-            linhas = cur.fetchall();
-            return linhas
-    except:
-        print("deu ruim no select do first order")
+#     return y, states
 
 
 """ 
@@ -135,23 +126,21 @@ def baum_welch(y, pi, A, B, max_iter=100, tol=1e-4):
 
 
 if __name__ == "__main__":
-    y, _ = generator(5000, PI, A, B)
 
+    btc_usdt = pegar_dados()
+    y = np.array([int(data[0]) + 1 for data in btc_usdt]);
+    
     rng = np.random.default_rng(0)
     pi0 = rng.dirichlet(np.ones(N) * 5)
     A0 = rng.dirichlet(np.ones(N) * 5, size=N)
     B0 = rng.dirichlet(np.ones(M) * 5, size=N)
 
-    pi_est, A_est, B_est, ll = baum_welch(y, pi0, A0, B0, max_iter=10000)
+    pi_est, A_est, B_est, ll = baum_welch(y, pi0, A0, B0, max_iter=2)
 
     print(f"log-verossimilhanca final: {ll:.4f}")
 
-    print("\nA real:")
-    print(A)
     print("A estimado:")
     print(np.round(A_est, 3))
 
-    print("\nB real:")
-    print(B)
     print("B estimado:")
     print(np.round(B_est, 3))
