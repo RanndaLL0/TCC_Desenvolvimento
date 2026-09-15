@@ -1,5 +1,7 @@
 import sys
 import numpy as np
+sys.path.append("../../../")
+from database.index import create_connection
 
 N = 3
 M = 3
@@ -30,6 +32,17 @@ def generator(T, pi=PI, A=A, B=B):
         q = rng.choice(N, p=A[q])
 
     return y, states
+
+def pegar_dados(): 
+    conn = create_connection()
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT close_normalized FROM normalize_data ORDER BY open_time LIMIT 1000")
+            linhas = cur.fetchall();
+            return linhas
+    except:
+        print("deu ruim no select do first order")
 
 
 """ 
