@@ -1,20 +1,8 @@
 import sys
 import numpy as np
 
-sys.path.append(".")
-from database.index import create_connection
-
-
-def pegar_dados(): 
-    conn = create_connection()
-
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT close_normalized FROM normalize_data ORDER BY open_time LIMIT 1000")
-            linhas = cur.fetchall();
-            return linhas
-    except:
-        print("deu ruim no select do first order")
+sys.path.append("../../../")
+from database.index import pegar_dados
         
 ## Para a matriz de transição vou somar um nos dados vindos
 # para ficar com o índice correto na matriz

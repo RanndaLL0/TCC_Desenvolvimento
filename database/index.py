@@ -32,6 +32,17 @@ def create_connection():
     conn._tunnel = tunnel
     return conn
 
+def pegar_dados(): 
+    conn = create_connection()
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT close_normalized FROM normalize_data ORDER BY open_time;")
+            linhas = cur.fetchall();
+            return linhas
+    except:
+        print("deu ruim no select do first order")
+
 
 if __name__ == "__main__":
     conn = create_connection()
