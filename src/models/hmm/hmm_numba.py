@@ -40,3 +40,24 @@ def forward(y,pi,A,B):
         ll += np.log(s)
     
     return alpha, c, ll
+
+@njit(cache=True)
+def backward(y, A, B, c):
+    T = y.shape[0]
+    n = A.shape[0]
+    beta = np.empty((T ,n))
+    tmp = np.empty(n)
+
+    for i in range(n):
+        beta[T - 1, i] = c[T - 1]
+
+    for t in range(T - 2, -1, -1):
+        yt1 = y[t + 1]
+        for j in range(n):
+            tmp[j] = B[j, yt1] * beta[t + 1, j]
+        for i in range(n):
+            acc = 0
+            for j in range(n):
+                acc += A[i, j] * tmp[j]
+            beta[t , i] = acc * c[t]
+    return beta
