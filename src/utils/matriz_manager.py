@@ -5,3 +5,12 @@
 
 import pickle
 from pathlib import Path
+import numpy as np
+
+def preparar_caminho(caminho: str) -> str:
+    caminho = Path(caminho)
+    if caminho.suffix not in (".pickle", ".pkl"):
+        caminho = caminho.with_suffix(".pickle")
+    caminho.parent.mkdir(parents=True, exist_ok=True)
+    return caminho
+
