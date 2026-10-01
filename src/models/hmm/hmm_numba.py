@@ -2,6 +2,9 @@ import sys
 import time
 import numpy as np
 from numba import njit, prange, get_num_threads
+sys.path.append(".")
+from database.index import pegar_dados
+
 
 N = 3
 M = 3
@@ -33,7 +36,7 @@ def forward(y,pi,A,B):
             acc *= B[j, yt]
             alpha[t , j] = acc
             s += acc
-        inv = 1.0 / 2
+        inv = 1.0 / s
         c[t] = inv
         for j in range(n):
             alpha[t,j] *= inv
@@ -144,3 +147,51 @@ def m_step(alpha, beta, xi, B_num):
     return pi, A, B
 
 
+def baum_welch(y, pi, A, B, max_iter, tolerancia=1e-4, n_blocos=None, verbose=False):
+    y = np.ascontiguousarray(y, dtype=np.int64)
+    pi = np.ascontiguousarray(pi, dtype=np.float64)
+    A = np.ascontiguousarray(A, dtype=np.float64)
+    B = np.ascontiguousarray(B, dtype=np.float64)
+
+    if n_blocos is None:
+        n_blocos = get_num_threads()
+
+    ll_anterior = -np.inf
+    ll = -np.inf
+
+    for it in range(max_iter):
+        alpha, c, ll = forward(y, pi, A ,B)
+        beta = backward(y, A, B, c)
+        xi, B_num = acumular_parelelo(y, A, B, alpha, beta, n_blocos)
+        pi, A, B = m_step(alpha, beta, xi, B_num)
+
+        if verbose:
+            print(f"iteracao {it:3d} ll = {ll:.4f}")
+        if ll - ll_anterior < tolerancia:
+            break
+        ll_anterior = ll
+
+    return pi, A, B, ll
+
+if __name__ == "__main__":
+    
+    btc_usdt = pegar_dados()
+    y = np.array([int(d[0]) + 1 for d in btc_usdt], dtype=np.int64)
+
+    rng = np.random.default_rng(0)
+    pi0 = rng.dirichlet(np.ones(N) * 5)
+    A0 = rng.dirichlet(np.ones(N) * 5, size=N)
+    B0 = rng.dirichlet(np.ones(M) * 5, size=N)
+
+    """Uma iteracao somente para carregar em cache"""
+    baum_welch(y[:100], pi0, A0, B0, max_iter=1)
+
+    t0 = time.perf_counter()
+    pi_est, A_est, B_est, ll = baum_welch(y, pi0, A0, B0, max_iter=1000, verbose=True)
+    print(f"tempo: {time.perf_counter() - t0:.3f}s  ({get_num_threads()} threads)")
+
+    print(f"log-verossimilhanca final: {ll:.4f}")
+    print("A estimado:")
+    print(np.round(A_est, 3))
+    print("B estimado:")
+    print(np.round(B_est, 3))
