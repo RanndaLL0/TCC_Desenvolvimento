@@ -70,7 +70,6 @@ def salvar_modelo(
 
 def carregar_modelo(
     caminho: str | Path,
-    validar: bool = True,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], InfoModelo]:
 
     with open(caminho, "rb") as f:
