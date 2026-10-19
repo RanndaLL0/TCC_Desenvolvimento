@@ -1,0 +1,11 @@
+[postgres]
+host = 127.0.0.1
+port = 5432
+user = postgres
+password = safe_password
+database = your_database
+
+[SSH_CONNECTION]
+SSH_HOST = "target ipv4"
+SSH_USER = "user_name"
+SSH_KEY = "PATH to SSH_KEY"
