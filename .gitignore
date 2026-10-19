@@ -2,3 +2,13 @@ __pycache__/
 *.py[cod]
 *.csv
 *.ini
+
+*.log
+*.lof
+*.bbl
+*.aux
+*.blg
+*.brf
+*.idx
+*.pdf
+*.toc
