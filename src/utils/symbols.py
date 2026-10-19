@@ -1,6 +1,7 @@
 import numpy as np
 
 SYMBOLS = (-1, 0, 1)
+INDICES = (0, 1, 2)
 DATA_OFF_SET = 1  # off_set para converter discretização em indice
 
 
@@ -26,3 +27,24 @@ def to_indices(data):
         )
 
     return arr.astype(int) + DATA_OFF_SET
+
+
+def to_symbols(data):
+    arr = np.asarray(data)
+
+    if arr.ndim != 1:
+        raise ValueError("the seuquence of indeces must be one-dimensional")
+
+    if arr.size == 0:
+        return np.empty(0, dtype=int)
+
+    if not np.issubdtype(arr.dtype, np.integer):
+        raise TypeError(f"the indices must be integers, got dtype {arr.dtype}")
+
+    invalid = ~np.isin(arr, INDICES)
+    if invalid.any():
+        raise ValueError(
+            f"the indices must be in {INDICES}, found {np.unique(arr[invalid])}"
+        )
+
+    return arr.astype(int) - DATA_OFF_SET
