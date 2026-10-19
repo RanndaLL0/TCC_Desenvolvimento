@@ -1,6 +1,4 @@
-import sys
 import cupy as np
-sys.path.append("../../../")
 from database.index import pegar_dados
 
 N = 3
