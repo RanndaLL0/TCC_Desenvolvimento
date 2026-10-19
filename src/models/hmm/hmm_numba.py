@@ -3,10 +3,11 @@ import warnings
 import numpy as np
 from numba import njit, prange, get_num_threads
 from database.index import pegar_dados
+from src.utils.symbols import SYMBOLS
 
 
 N = 3
-M = 3
+M = len(SYMBOLS)
 
 @njit(cache=True)
 def forward(y,pi,A,B):
