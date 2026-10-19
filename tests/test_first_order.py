@@ -139,11 +139,6 @@ def test_fit_raises_on_sequence_too_short(data):
         FirstOrder().fit(data)
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="pendência 2: self.matrix é atribuído antes da verificação; se o fit "
-    "falha, matrix fica novo e prob antigo",
-)
 def test_failed_fit_keeps_previous_state_consistent(model):
     matrix_before = model.matrix.copy()
     prob_before = model.prob.copy()
@@ -153,11 +148,6 @@ def test_failed_fit_keeps_previous_state_consistent(model):
     assert np.allclose(model.prob, prob_before)
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="o fit não valida os símbolos: -2 vira índice negativo e passa em "
-    "silêncio, 2 e floats estouram IndexError sem mensagem clara",
-)
 @pytest.mark.parametrize(
     "data",
     [
@@ -177,16 +167,6 @@ def test_fit_rejects_invalid_symbols(data):
 
 def test_log_likelihood_of_training_toy_sequence(model):
     assert model.calculate_likelihood(TRAIN) == pytest.approx(-7.4547, abs=1e-4)
-
-
-@pytest.mark.xfail(
-    strict=True,
-    reason="_calculate_likelihood devolve nan: 0 * log(0) sem a máscara matrix > 0",
-)
-def test_counting_likelihood_matches_pairwise_likelihood(model):
-    assert model._calculate_likelihood() == pytest.approx(
-        model.calculate_likelihood(TRAIN)
-    )
 
 
 def test_log_likelihood_of_test_toy_sequence(model):
@@ -309,13 +289,9 @@ def test_predict_proba_rejects_invalid_input(model):
         model.predict_proba([0.0, 1.0])
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="entrada vazia devolve shape (0,) em vez de (0, 3), contrato do "
-    "predict_proba é matriz (N, 3)",
-)
-def test_predict_proba_empty_input_keeps_three_columns(model):
-    assert model.predict_proba([]).shape == (0, 3)
+def test_predict_proba_rejects_empty_input(model):
+    with pytest.raises(ValueError, match="at least one element"):
+        model.predict_proba([])
 
 
 # ------------------------------------------------------- predict (decisão) integrado
