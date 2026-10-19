@@ -3,6 +3,8 @@ from pathlib import Path
 import psycopg
 import paramiko
 
+# Compatibilidade: o paramiko >= 4.0 removeu o suporte a chaves DSA (paramiko.DSSKey),
+# mas o sshtunnel 0.4.0 (sem manutencao) ainda referencia essa classe ao carregar as chaves.
 paramiko.DSSKey = getattr(paramiko, "DSSKey", paramiko.Ed25519Key)
 from sshtunnel import SSHTunnelForwarder
 
