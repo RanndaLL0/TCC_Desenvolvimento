@@ -1,8 +1,6 @@
-import sys
 import time
 import numpy as np
 from numba import njit, prange, get_num_threads
-sys.path.append(".")
 from database.index import pegar_dados
 
 

@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+# Permite instalar o projeto em modo editavel (pip install -e .), assim os
+# pacotes "src" e "database" ficam importaveis de qualquer diretorio
+[project]
+name = "tcc-desenvolvimento"
+version = "0.1.0"
+requires-python = ">=3.12"
+
+[tool.setuptools.packages.find]
+include = ["src*", "database*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

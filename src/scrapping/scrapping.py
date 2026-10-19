@@ -1,15 +1,24 @@
 import json
 import configparser
+import http.client
 import os
+import random
 import subprocess
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
+from pathlib import Path
 
 BASE_URL = 'https://api.binance.com/api/v3/klines'
 LIMITE_REQUISICAO = 1000
 FECHAMENTO = 300_000
+
+# Retry com backoff exponencial para as requisicoes na API
+TENTATIVAS_MAXIMAS = 5
+ESPERA_INICIAL_SEGUNDOS = 1
+ESPERA_MAXIMA_SEGUNDOS = 60
 
 # A nomenclatura das colunas segue a mesma da API
 CABECALHO = [
@@ -30,11 +39,11 @@ SYMBOL = "BTCUSDT"
 INTERVALO = "5m"
 INICIO = "2017-08-17"
 
-# Evitei ao maximo de utilizar bibliotecas externas como o PSYCOPG
-# Entao as conexões e os comandos executados no banco pelo scrapping sao todos
-# Comandos nativos que rodam no psql
+CAMINHO_CONFIG = Path(__file__).resolve().parents[2] / "config.ini"
+
 config = configparser.ConfigParser(inline_comment_prefixes=None)
-config.read("config.ini")
+if not config.read(CAMINHO_CONFIG):
+    raise FileNotFoundError(f"Arquivo de configuracao nao encontrado: {CAMINHO_CONFIG}")
 
 #O arquivo de configuracoes TOML nao foi posto no repositorio
 PG_HOST = config.get("postgres", "host")
@@ -78,9 +87,24 @@ def para_ms(texto):
     dt = datetime.strptime(texto, "%Y-%m-%d").replace(tzinfo=timezone.utc)
     return int(dt.timestamp() * 1000)
 
-#Utilitario para formatar a data no formato de TIMESTAMP no banco
 def para_iso(ms):
     return datetime.fromtimestamp(ms / 1000, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+def erro_temporario(erro):
+    if isinstance(erro, urllib.error.HTTPError):
+        return erro.code in (418, 429) or erro.code >= 500
+    return True
+
+
+def tempo_espera(tentativa, erro):
+    if isinstance(erro, urllib.error.HTTPError):
+        retry_after = erro.headers.get("Retry-After")
+        if retry_after and retry_after.isdigit():
+            return int(retry_after)
+
+    # Backoff exponencial
+    espera = min(ESPERA_MAXIMA_SEGUNDOS, ESPERA_INICIAL_SEGUNDOS * 2 ** tentativa)
+    return espera + random.uniform(0, espera / 2)
 
 
 def buscar(inicio_ms):
@@ -90,8 +114,19 @@ def buscar(inicio_ms):
         "startTime": inicio_ms,
         "limit": LIMITE_REQUISICAO,
     })
-    with urllib.request.urlopen(f"{BASE_URL}?{parametros}", timeout=30) as resposta:
-        return json.loads(resposta.read())
+    url = f"{BASE_URL}?{parametros}"
+
+    for tentativa in range(TENTATIVAS_MAXIMAS):
+        try:
+            with urllib.request.urlopen(url, timeout=30) as resposta:
+                return json.loads(resposta.read())
+        except (OSError, http.client.HTTPException) as erro:
+            if not erro_temporario(erro) or tentativa == TENTATIVAS_MAXIMAS - 1:
+                raise
+
+            espera = tempo_espera(tentativa, erro)
+            print(f"Falha ao buscar candles ({erro}), tentativa {tentativa + 1}/{TENTATIVAS_MAXIMAS}, nova tentativa em {espera:.1f}s")
+            time.sleep(espera)
 
 def inserir_batch(linhas_poggers):
     env = os.environ.copy()

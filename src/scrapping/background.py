@@ -41,8 +41,12 @@ def obter_cursor_ms():
 
 
 def ciclo():
-    cursor = obter_cursor_ms()
-    scrapping.sincronizar(cursor)
+
+    try:     
+        cursor = obter_cursor_ms()
+        scrapping.sincronizar(cursor)
+    except:
+        print("Erro ao executar o ciclo do scrapping")
 
 def main():
     while True:

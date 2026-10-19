@@ -47,7 +47,6 @@ def pegar_dados():
             )
             linhas = cur.fetchall()
             return linhas
-
     finally:
         conn.close()
         conn._tunnel.close()

@@ -55,7 +55,9 @@ src/
    python -m venv .venv
    source .venv/bin/activate
    pip install -r requirements.txt
+   pip install -e .
    ```
+   O `pip install -e .` instala o projeto em modo editável, permitindo que os imports `src...` e `database...` funcionem a partir de qualquer diretório.
 2. Configure o `config.ini` (não versionado) com as credenciais do PostgreSQL e os dados de acesso SSH à VM.
 3. Rode o serviço de scrapping/sincronização (na VM) ou os scripts de modelagem localmente, apontando para o banco via túnel SSH.
 
