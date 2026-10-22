@@ -79,13 +79,13 @@ O `config.ini` não é versionado (contém credenciais). Copie o modelo e preenc
 cp config.ini.example config.ini
 ```
 
-| Seção              | Chave                          | Significado                                                                                                                                                    |
-| ------------------ | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Seção              | Chave                          | Significado                                                                                                                                                                                |
+| ------------------ | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `[postgres]`       | `host`, `port`                 | Endereço do PostgreSQL. Com túnel SSH, **visto a partir da VM** (o scrapping, que roda na VM, usa os mesmos valores no `psql -h/-p`); na conexão direta, **visto a partir desta máquina**. |
-| `[postgres]`       | `user`, `password`, `database` | Credenciais e nome do banco. Escreva os valores **sem aspas** (o scrapping não as remove). A `password` pode ficar vazia (por exemplo, um PostgreSQL local com autenticação `trust`).                                                                     |
-| `[SSH_CONNECTION]` | `SSH_HOST`                     | IP ou nome da VM. A porta SSH é fixa em 22 (`database/index.py`). **A seção é opcional**: remova-a ou deixe as três chaves vazias para conectar direto. Preencher só parte delas é erro.                                                                                              |
-| `[SSH_CONNECTION]` | `SSH_USER`                     | Usuário SSH na VM.                                                                                                                                             |
-| `[SSH_CONNECTION]` | `SSH_KEY`                      | Caminho da chave privada SSH. As aspas são opcionais.                                                                                                          |
+| `[postgres]`       | `user`, `password`, `database` | Credenciais e nome do banco. Escreva os valores **sem aspas** (o scrapping não as remove). A `password` pode ficar vazia (por exemplo, um PostgreSQL local com autenticação `trust`).      |
+| `[SSH_CONNECTION]` | `SSH_HOST`                     | IP ou nome da VM. A porta SSH é fixa em 22 (`database/index.py`). **A seção é opcional**: remova-a ou deixe as três chaves vazias para conectar direto. Preencher só parte delas é erro.   |
+| `[SSH_CONNECTION]` | `SSH_USER`                     | Usuário SSH na VM.                                                                                                                                                                         |
+| `[SSH_CONNECTION]` | `SSH_KEY`                      | Caminho da chave privada SSH. As aspas são opcionais.                                                                                                                                      |
 
 ### 3. Banco de dados
 
@@ -104,26 +104,62 @@ psql -h <host> -U <usuario> -d <banco> -c "CALL normalize_btc();"
 
 ### 4. Reconstruir a base a partir do snapshot
 
-Sem acesso à VM, a base pode ser montada localmente a partir de um snapshot da tabela `btc_usdt` em Parquet (`snapshot/btc_usdt_2026-10-01.parquet`: 957.853 candles, de 2017-08-17 04:00 a 2026-09-30 23:55, 46 MiB). Ao lado dele fica o manifesto (`.manifest.json`), com o número de linhas, o período e o SHA-256 do arquivo.
+Sem acesso à VM, a base pode ser montada localmente a partir de um snapshot da tabela `btc_usdt`: 957.853 candles, de 2017-08-17 04:00 a 2026-09-30 23:55 (46 MiB). O arquivo Parquet é publicado como anexo do [release `snapshot-2026-10-01`](https://github.com/RanndaLL0/TCC_Desenvolvimento/releases/tag/snapshot-2026-10-01), e o manifesto (`snapshot/btc_usdt_2026-10-01.manifest.json`) já vem no clone do repositório. Detalhes do formato e dos arquivos na subseção "Sobre o snapshot", abaixo.
 
-1. Crie um banco PostgreSQL vazio e aponte o `config.ini` para ele **sem a seção `[SSH_CONNECTION]`** (conexão direta, ver etapa 2).
-2. Restaure:
+1. Baixe o Parquet para a pasta `snapshot/`, ao lado do manifesto:
+   ```
+   curl -L -o snapshot/btc_usdt_2026-10-01.parquet \
+     https://github.com/RanndaLL0/TCC_Desenvolvimento/releases/download/snapshot-2026-10-01/btc_usdt_2026-10-01.parquet
+   ```
+   Com o GitHub CLI, o equivalente é `gh release download snapshot-2026-10-01 --dir snapshot`. Para conferir o download, o resultado de `sha256sum snapshot/btc_usdt_2026-10-01.parquet` deve ser igual ao campo `sha256` do manifesto (o `restore` faz essa mesma conferência sozinho).
+2. Crie um banco PostgreSQL vazio e aponte o `config.ini` para ele **sem a seção `[SSH_CONNECTION]`** (conexão direta, ver etapa 2).
+3. Restaure:
    ```
    python -m database.snapshot restore snapshot/btc_usdt_2026-10-01.parquet
    ```
    O comando confere o checksum **antes** de tocar no banco, aplica o `schema.sql`, carrega os candles e, ao final, confere linhas e período contra o manifesto (se algo não bater, a transação é desfeita). Ele só carrega em `btc_usdt` **vazia**: se o `config.ini` apontar para um banco que já tem dados, como a produção, nada é alterado.
-3. Gere a série discretizada legada com os comandos da etapa 3 (`normalize_btc.sql` e `CALL normalize_btc();`).
-4. Confira a conexão: `python -m database.index`.
+4. Gere a série discretizada legada com os comandos da etapa 3 (`normalize_btc.sql` e `CALL normalize_btc();`).
+5. Confira a conexão: `python -m database.index`.
 
-Para gerar um snapshot novo (exige acesso a um banco com os dados; a leitura é somente-leitura):
+#### Sobre o snapshot
 
-```
-python -m database.snapshot export --ate 2026-10-01
-```
+**Parquet.** Formato de arquivo para tabelas, binário, comprimido (zstd) e organizado por colunas. Diferente do CSV, guarda o tipo de cada coluna (`timestamp`, `double`, `int32`, texto), então os dados não precisam ser reinterpretados na carga. É lido e escrito com o `pyarrow`.
 
-O `--ate` é obrigatório e exclusivo (entram os candles com `open_time` anterior à data): como a coleta continua, sem uma data final o conteúdo mudaria a cada execução. O Parquet é ignorado pelo git (`.gitignore`); o manifesto é versionado.
+**Manifesto.** JSON com o mesmo nome base do Parquet, que descreve o conteúdo do arquivo:
 
-> **Pendente:** definir onde o Parquet será publicado (release do GitHub ou outro local).
+| Campo                                    | Significado                                                            |
+| ---------------------------------------- | ---------------------------------------------------------------------- |
+| `tabela`                                 | Tabela de origem (`btc_usdt`).                                         |
+| `ate_exclusivo`                          | Data final do corte: entram os candles com `open_time` anterior a ela. |
+| `linhas`                                 | Número de linhas do Parquet.                                           |
+| `primeiro_open_time`, `ultimo_open_time` | Período coberto.                                                       |
+| `colunas`                                | Colunas, na ordem da tabela.                                           |
+| `formato`                                | `parquet/zstd`.                                                        |
+| `sha256`                                 | Impressão digital do Parquet: qualquer byte alterado muda o valor.     |
+| `gerado_em`                              | Momento da exportação (UTC).                                           |
+
+O manifesto serve para detectar um Parquet corrompido ou trocado antes de restaurar e para conferir o banco depois da carga (linhas e período).
+
+**Nomes dos arquivos.** Cada snapshot é um par `<tabela>_<data final>.parquet` e `<tabela>_<data final>.manifest.json`, na mesma pasta. O `restore` encontra o manifesto derivando o nome a partir do Parquet; por isso os dois devem andar juntos e, se um for renomeado, o outro também. Um snapshot com outra data final gera um novo par e não apaga os anteriores, já a exportação repetida com a mesma data sobrescreve os dois arquivos. O `restore` nunca escolhe "o mais recente": recebe sempre o caminho explícito.
+
+**Comandos.** Rodam a partir da raiz do projeto, com o ambiente virtual ativo, e usam o banco definido no `config.ini`.
+
+| Comando                                                               | O que faz                                                                                                                                                                                                               |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `python -m database.snapshot export --ate AAAA-MM-DD [--saida PASTA]` | Lê `btc_usdt` (somente leitura) e grava o par Parquet + manifesto em `PASTA` (padrão: `snapshot/`). O `--ate` é obrigatório e exclusivo: como a coleta continua, sem uma data final o conteúdo mudaria a cada execução. |
+| `python -m database.snapshot restore <parquet>`                       | Confere o checksum, aplica o `schema.sql` e carrega o Parquet em `btc_usdt`, que precisa estar vazia.                                                                                                                   |
+
+A ajuda de cada comando está em `python -m database.snapshot --help`, `... export --help` e `... restore --help`. As datas seguem o formato ISO (`2026-10-01`).
+
+**Publicar um snapshot novo** (para quem mantém a base, com acesso ao banco com os dados):
+
+1. Exporte: `python -m database.snapshot export --ate AAAA-MM-DD`.
+2. Publique o Parquet em um release:
+   ```
+   gh release create snapshot-AAAA-MM-DD snapshot/btc_usdt_AAAA-MM-DD.parquet \
+     --title "Snapshot btc_usdt até AAAA-MM-DD" \
+     --notes "SHA-256 no manifesto: snapshot/btc_usdt_AAAA-MM-DD.manifest.json"
+   ```
 
 ### 5. Coleta dos candles
 
