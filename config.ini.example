@@ -1,3 +1,6 @@
+# Com [SSH_CONNECTION] preenchida, a conexao passa por um tunel SSH e host/port
+# sao o endereco do PostgreSQL visto a partir da VM. Sem ela, conecta direto e
+# host/port sao o endereco do PostgreSQL visto a partir desta maquina.
 [postgres]
 host = 127.0.0.1
 port = 5432
@@ -5,6 +8,8 @@ user = postgres
 password = safe_password
 database = your_database
 
+# Opcional: para conectar direto, remova esta secao ou deixe os tres valores vazios.
+# Preencher so uma parte dos valores e erro.
 [SSH_CONNECTION]
 SSH_HOST = "target ipv4"
 SSH_USER = "user_name"

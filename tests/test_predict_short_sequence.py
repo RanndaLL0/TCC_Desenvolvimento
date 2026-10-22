@@ -6,7 +6,7 @@ import pytest
 from src.models.naive_models.first_order import FirstOrder
 from src.models.naive_models.persistence import Persistence
 from src.utils.decision import predict
-from src.utils.split import split_data
+from src.utils.data_manager import split_data
 
 SYMBOLS = (-1, 0, 1)
 

@@ -9,6 +9,13 @@ name = "tcc-desenvolvimento"
 version = "0.1.0"
 requires-python = ">=3.12"
 
+# Dependencias opcionais. O HMM em GPU (src/models/hmm/hmm.py) usa cupy, que exige
+# driver NVIDIA + CUDA. Instalar com: pip install -e ".[gpu]"
+# O nome do pacote depende da versao do CUDA: cupy-cuda12x (CUDA 12) ou
+# cupy-cuda13x (CUDA 13). O hmm_numba.py roda em CPU e nao precisa dele.
+[project.optional-dependencies]
+gpu = ["cupy-cuda12x"]
+
 [tool.setuptools.packages.find]
 include = ["src*", "database*"]
 
