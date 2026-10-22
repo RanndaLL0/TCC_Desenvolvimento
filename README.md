@@ -166,10 +166,10 @@ A ajuda de cada comando está em `python -m database.snapshot --help`, `... expo
 Discretiza o fechamento do snapshot em `{-1, 0, +1}` e grava o relatório (registros, lacunas, parâmetros e distribuição de classes por limiar, partição e mês):
 
 ```
-python -m src.preprocess.discretizar --snapshot snapshot/btc_usdt_2026-10-01.parquet
+python -m src.preprocess.discretize --snapshot snapshot/btc_usdt_2026-10-01.parquet
 ```
 
-Por padrão roda os dois modos (`blocos` e `global`) com os limiares `s/3`, `s/4` e `s/5`, e escreve `relatorios/discretizacao_2026-10-01.md` e `.json`. As opções (`--modo`, `--k`, `--intervalo`, `--treino`, `--saida`), as decisões e os resultados estão em [`docs/discretizacao.md`](docs/discretizacao.md).
+Por padrão roda os dois modos (`blocks` e `global`) com os limiares `s/3`, `s/4` e `s/5`, e escreve `relatorios/discretizacao_2026-10-01.md` e `.json`. As opções (`--mode`, `--k`, `--interval`, `--train`, `--saida`), as decisões e os resultados estão em [`docs/discretizacao.md`](docs/discretizacao.md).
 
 ### 6. Coleta dos candles
 

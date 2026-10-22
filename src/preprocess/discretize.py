@@ -18,10 +18,10 @@ ROOT = Path(__file__).resolve().parents[2]
 STD_FOLDER = ROOT / "relatorios"
 
 OFF_SET = np.timedelta64(5, "m")
-MODES = ("blocos", "global")
+MODES = ("blocks", "global")
 
 # Posição sem símbolo: primeiro candle, retorno que atravessa uma lacuna e, no
-# modo "blocos", o primeiro bloco (sem histórico). O valor está fora de
+# modo "blocks", o primeiro bloco (sem histórico). O valor está fora de
 # {-1, 0, 1} de propósito: se vazar para um modelo, to_indices levanta erro em
 # vez de contar um símbolo que não existe
 NO_SYMBOL = np.iinfo(np.int8).min
@@ -32,12 +32,12 @@ class Discretization:
     """Resultado de uma discretização da série inteira.
 
     Attributes:
-        mode: "blocos" ou "global".
+        mode: "blocks" ou "global".
         k: divisor do limiar (o corte é sigma/k).
         train_pct: percentual de treino usado no corte.
         interval_months: meses por bloco (None no modo "global").
         cut: primeira linha do teste; as linhas [0, cut) são o treino.
-        symbols: int8, uma posição por candle; SEM_SIMBOLO quando não há símbolo.
+        symbols: int8, uma posição por candle; NO_SYMBOL quando não há símbolo.
         segment: int32, id do trecho contínuo (sem lacunas) de cada símbolo;
             -1 onde não há símbolo.
         block: int32, bloco de cada candle (None no modo "global").
@@ -277,10 +277,10 @@ def block_index(open_times, interval_months):
     return ((months - months[0]) // interval_months).astype(np.int32)
 
 
-def discretize(open_times, close, k, mode="blocos", interval_months=1, train_pct=95):
+def discretize(open_times, close, k, mode="blocks", interval_months=1, train_pct=95):
     """Discretiza a série inteira de uma vez.
 
-    Modo "blocos": o bloco b é classificado com a média e o desvio do bloco b-1
+    Modo "blocks": o bloco b é classificado com a média e o desvio do bloco b-1
     (só dados anteriores, então nenhum símbolo depende do futuro). O primeiro
     bloco só serve de histórico e fica sem símbolos.
 
@@ -288,14 +288,14 @@ def discretize(open_times, close, k, mode="blocos", interval_months=1, train_pct
     ([0, cut)), aplicados a treino e teste (a definição literal do TCC).
 
     Como o corte treino/teste é feito DEPOIS, sobre o resultado, o modo
-    "blocos" produz os mesmos símbolos de treino com ou sem o teste.
+    "blocks" produz os mesmos símbolos de treino com ou sem o teste.
 
     Args:
         open_times: sequência 1D de datetime64, um por candle.
         close: preços de fechamento, mesmo tamanho de open_times.
         k: divisor do limiar (o corte é sigma/k).
-        mode: "blocos" ou "global".
-        interval_months: meses por bloco (usado só no modo "blocos").
+        mode: "blocks" ou "global".
+        interval_months: meses por bloco (usado só no modo "blocks").
         train_pct: percentual de treino, inteiro entre 1 e 99.
 
     Returns:
@@ -304,7 +304,7 @@ def discretize(open_times, close, k, mode="blocos", interval_months=1, train_pct
 
     Raises:
         ValueError: se mode, k ou train_pct forem inválidos, ou se um mês do
-            modo "blocos" não tiver candles para estimar o bloco seguinte.
+            modo "blocks" não tiver candles para estimar o bloco seguinte.
     """
     if mode not in MODES:
         raise ValueError(f"mode must be one of {MODES}, got {mode!r}")
@@ -369,7 +369,7 @@ def discretize(open_times, close, k, mode="blocos", interval_months=1, train_pct
         mode=mode,
         k=k,
         train_pct=train_pct,
-        interval_months=interval_months if mode == "blocos" else None,
+        interval_months=interval_months if mode == "blocks" else None,
         cut=cut,
         symbols=symbols,
         segment=segment,
@@ -382,7 +382,7 @@ def class_counts(symbols):
     """Conta os símbolos -1, 0 e +1, ignorando as posições sem símbolo.
 
     Args:
-        symbols: array de símbolos, possivelmente com SEM_SIMBOLO.
+        symbols: array de símbolos, possivelmente com NO_SYMBOL.
 
     Returns:
         np.ndarray com 3 contagens, na ordem (-1, 0, +1).
@@ -421,10 +421,10 @@ def _by_month(open_times, symbols):
 
     Args:
         open_times: datetime64, um por candle.
-        symbols: símbolos de cada candle, possivelmente com SEM_SIMBOLO.
+        symbols: símbolos de cada candle, possivelmente com NO_SYMBOL.
 
     Returns:
-        Lista de dicts, um por mês com símbolos: "mes", "total", as contagens
+        Lista de dicts, um por mês com símbolos: "month", "total", as contagens
         "-1", "0", "1" e "pct_zero".
     """
     valid = symbols != NO_SYMBOL
@@ -439,7 +439,7 @@ def _by_month(open_times, symbols):
         total = int(row.sum())
         rows.append(
             {
-                "mes": str(month),
+                "month": str(month),
                 "total": total,
                 "-1": int(row[0]),
                 "0": int(row[1]),
@@ -463,7 +463,7 @@ def _by_year(by_month):
     years = {}
 
     for row in by_month:
-        year = years.setdefault(row["mes"][:4], [0, 0])
+        year = years.setdefault(row["month"][:4], [0, 0])
         year[0] += row["total"]
         year[1] += row["0"]
 
@@ -485,15 +485,15 @@ def _timestamp(value):
 
 
 def _blocks_table(result, open_times):
-    """Monta a tabela de estatísticas de cada bloco (modo "blocos").
+    """Monta a tabela de estatísticas de cada bloco (modo "blocks").
 
     Args:
-        result: Discretization do modo "blocos".
+        result: Discretization do modo "blocks".
         open_times: datetime64, um por candle.
 
     Returns:
-        Lista de dicts, um por bloco: "bloco", "primeiro_mes",
-        "retornos_do_bloco_anterior", "mu" e "sigma" (None no primeiro bloco,
+        Lista de dicts, um por bloco: "block", "first_month",
+        "previous_block_returns", "mu" e "sigma" (None no primeiro bloco,
         que não tem histórico).
     """
     stats = result.stats
@@ -502,12 +502,12 @@ def _blocks_table(result, open_times):
 
     for b in range(len(stats["mu"])):
         has_stats = bool(np.isfinite(stats["mu"][b]))
-        month = first_month + int(b * result.interval_months)
+        month = first_month + np.timedelta64(int(b * result.interval_months), "M")
         rows.append(
             {
-                "bloco": b,
-                "primeiro_mes": str(month),
-                "retornos_do_bloco_anterior": int(stats["n"][b]),
+                "block": b,
+                "first_month": str(month),
+                "previous_block_returns": int(stats["n"][b]),
                 "mu": float(stats["mu"][b]) if has_stats else None,
                 "sigma": float(stats["sigma"][b]) if has_stats else None,
             }
@@ -539,68 +539,68 @@ def build_report(open_times, results, source):
         gap = times[position] - times[position - 1]
         details.append(
             {
-                "de": _timestamp(times[position - 1]),
-                "ate": _timestamp(times[position]),
-                "duracao": str(timedelta(seconds=int(gap / np.timedelta64(1, "s")))),
-                "candles_faltantes": int(absent),
+                "from": _timestamp(times[position - 1]),
+                "to": _timestamp(times[position]),
+                "duration": str(timedelta(seconds=int(gap / np.timedelta64(1, "s")))),
+                "missing_candles": int(absent),
             }
         )
 
     largest = (
-        max(details, key=lambda gap: gap["candles_faltantes"]) if details else None
+        max(details, key=lambda gap: gap["missing_candles"]) if details else None
     )
     cut = results[0].cut
 
     report = {
-        "gerado_em": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "fonte": source,
-        "registros": n,
-        "primeiro_open_time": _timestamp(times[0]),
-        "ultimo_open_time": _timestamp(times[-1]),
+        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "source": source,
+        "records": n,
+        "first_open_time": _timestamp(times[0]),
+        "last_open_time": _timestamp(times[-1]),
         # o primeiro candle e o candle depois de cada lacuna ficam sem retorno
-        "retornos_validos": n - 1 - len(details),
-        "lacunas": {
-            "quantidade": len(details),
-            "candles_faltantes": int(missing.sum()),
-            "segmentos": len(details) + 1,
-            "maior": largest,
-            "detalhe": details,
+        "valid_returns": n - 1 - len(details),
+        "gaps": {
+            "count": len(details),
+            "missing_candles": int(missing.sum()),
+            "segments": len(details) + 1,
+            "largest": largest,
+            "details": details,
         },
-        "corte": {
-            "treino_pct": results[0].train_pct,
-            "primeira_linha_do_teste": cut,
-            "open_time_da_primeira_linha_do_teste": _timestamp(times[cut]),
+        "cut_info": {
+            "train_pct": results[0].train_pct,
+            "first_test_row": cut,
+            "first_test_open_time": _timestamp(times[cut]),
         },
-        "resultados": [],
+        "results": [],
     }
 
     for result in results:
         by_month = _by_month(times, result.symbols)
         entry = {
-            "modo": result.mode,
+            "mode": result.mode,
             "k": result.k,
-            "limiar": f"s/{result.k}",
-            "intervalo_meses": result.interval_months,
-            "simbolos_gerados": int(result.valid.sum()),
-            "segmentos_com_simbolos": int(len(np.unique(result.segment[result.valid]))),
-            "distribuicao": {
-                "geral": _distribution(class_counts(result.symbols)),
-                "treino": _distribution(class_counts(result.symbols[:cut])),
-                "teste": _distribution(class_counts(result.symbols[cut:])),
+            "threshold": f"s/{result.k}",
+            "interval_months": result.interval_months,
+            "symbols_generated": int(result.valid.sum()),
+            "segments_with_symbols": int(len(np.unique(result.segment[result.valid]))),
+            "distribution": {
+                "overall": _distribution(class_counts(result.symbols)),
+                "train": _distribution(class_counts(result.symbols[:cut])),
+                "test": _distribution(class_counts(result.symbols[cut:])),
             },
-            "pct_zero_por_ano": _by_year(by_month),
-            "por_mes": by_month,
+            "pct_zero_by_year": _by_year(by_month),
+            "by_month": by_month,
         }
 
         if result.mode == "global":
-            entry["parametros"] = {
+            entry["parameters"] = {
                 "mu": result.stats["mu"],
                 "sigma": result.stats["sigma"],
             }
         else:
-            entry["blocos"] = _blocks_table(result, times)
+            entry["blocks"] = _blocks_table(result, times)
 
-        report["resultados"].append(entry)
+        report["results"].append(entry)
 
     return report
 
@@ -629,37 +629,37 @@ def render_markdown(report):
     Returns:
         str com o texto Markdown (milhar com ponto, decimal com vírgula).
     """
-    gaps = report["lacunas"]
-    fonte = report["fonte"]
-    corte = report["corte"]
+    gaps = report["gaps"]
+    source = report["source"]
+    cut_info = report["cut_info"]
     lines = [
         "# Relatório da discretização",
         "",
-        f"Gerado em {report['gerado_em']} (UTC). Decisões: `docs/discretizacao.md`.",
+        f"Gerado em {report['generated_at']} (UTC). Decisões: `docs/discretizacao.md`.",
         "",
         "## Fonte",
         "",
-        f"- Arquivo: `{fonte['arquivo']}` (SHA-256 `{fonte['sha256']}`)",
-        f"- Corte do snapshot: `open_time` anterior a {fonte['ate_exclusivo']}",
-        f"- Candles: {report['registros']:,} ({report['primeiro_open_time']} a {report['ultimo_open_time']})".replace(
+        f"- Arquivo: `{source['file']}` (SHA-256 `{source['sha256']}`)",
+        f"- Corte do snapshot: `open_time` anterior a {source['until_exclusive']}",
+        f"- Candles: {report['records']:,} ({report['first_open_time']} a {report['last_open_time']})".replace(
             ",", "."
         ),
-        f"- Retornos válidos (entre candles a 5 minutos): {report['retornos_validos']:,}".replace(
+        f"- Retornos válidos (entre candles a 5 minutos): {report['valid_returns']:,}".replace(
             ",", "."
         ),
         "",
         "## Lacunas",
         "",
-        f"- Lacunas (`open_time[t] - open_time[t-1]` diferente de 5 minutos): **{gaps['quantidade']}**",
-        f"- Candles faltantes: **{gaps['candles_faltantes']:,}**".replace(",", "."),
-        f"- Segmentos contínuos: **{gaps['segmentos']}**",
+        f"- Lacunas (`open_time[t] - open_time[t-1]` diferente de 5 minutos): **{gaps['count']}**",
+        f"- Candles faltantes: **{gaps['missing_candles']:,}**".replace(",", "."),
+        f"- Segmentos contínuos: **{gaps['segments']}**",
         "- O retorno que atravessa uma lacuna não gera símbolo; o candle logo depois dela começa um novo segmento.",
     ]
 
-    if gaps["maior"]:
-        maior = gaps["maior"]
+    if gaps["largest"]:
+        largest = gaps["largest"]
         lines.append(
-            f"- Maior lacuna: {maior['duracao']} ({maior['candles_faltantes']} candles), de {maior['de']} a {maior['ate']}"
+            f"- Maior lacuna: {largest['duration']} ({largest['missing_candles']} candles), de {largest['from']} a {largest['to']}"
         )
 
     lines += [
@@ -668,7 +668,7 @@ def render_markdown(report):
         "",
         "## Corte treino/teste",
         "",
-        f"- Treino: {corte['treino_pct']}% das linhas; o teste começa na linha {corte['primeira_linha_do_teste']:,} ({corte['open_time_da_primeira_linha_do_teste']})".replace(
+        f"- Treino: {cut_info['train_pct']}% das linhas; o teste começa na linha {cut_info['first_test_row']:,} ({cut_info['first_test_open_time']})".replace(
             ",", "."
         ),
         "",
@@ -680,14 +680,14 @@ def render_markdown(report):
         "|---|---|---:|---|---|---|",
     ]
 
-    for entry in report["resultados"]:
+    for entry in report["results"]:
         cells = []
-        for part in ("geral", "treino", "teste"):
-            pct = entry["distribuicao"][part]["pct"]
+        for part in ("overall", "train", "test"):
+            pct = entry["distribution"][part]["pct"]
             cells.append(" / ".join(_pct(pct[label]) for label in ("-1", "0", "1")))
 
         lines.append(
-            f"| {entry['modo']} | {entry['limiar']} | {entry['simbolos_gerados']:,} | ".replace(
+            f"| {entry['mode']} | {entry['threshold']} | {entry['symbols_generated']:,} | ".replace(
                 ",", "."
             )
             + " | ".join(cells)
@@ -695,9 +695,9 @@ def render_markdown(report):
         )
 
     years = sorted(
-        {year for entry in report["resultados"] for year in entry["pct_zero_por_ano"]}
+        {year for entry in report["results"] for year in entry["pct_zero_by_year"]}
     )
-    labels = [f"{entry['modo']} {entry['limiar']}" for entry in report["resultados"]]
+    labels = [f"{entry['mode']} {entry['threshold']}" for entry in report["results"]]
 
     lines += [
         "",
@@ -711,7 +711,7 @@ def render_markdown(report):
 
     for year in years:
         row = [
-            _pct(entry["pct_zero_por_ano"].get(year)) for entry in report["resultados"]
+            _pct(entry["pct_zero_by_year"].get(year)) for entry in report["results"]
         ]
         lines.append(f"| {year} | " + " | ".join(row) + " |")
 
@@ -734,7 +734,7 @@ def load_snapshot(parquet):
 
     Returns:
         Tupla (open_times, close, source): os dois arrays e um dict com o nome
-        do arquivo, o SHA-256, o corte (ate_exclusivo) e o número de linhas.
+        do arquivo, o SHA-256, o corte (until_exclusive) e o número de linhas.
     """
     from database.snapshot import verify_checksum
 
@@ -745,10 +745,10 @@ def load_snapshot(parquet):
     close = table.column("close").to_numpy()
 
     source = {
-        "arquivo": Path(parquet).name,
+        "file": Path(parquet).name,
         "sha256": manifest["sha256"],
-        "ate_exclusivo": manifest["ate_exclusivo"],
-        "linhas": manifest["linhas"],
+        "until_exclusive": manifest["ate_exclusivo"],
+        "rows": manifest["linhas"],
     }
 
     return open_times, close, source
@@ -761,20 +761,20 @@ def main():
     na linha de comando, e imprime os caminhos dos arquivos criados.
     """
     parser = argparse.ArgumentParser(
-        description="Discretiza o fechamento de um snapshot e grava o relatório"
+        description="Discretizes the close price of a snapshot and writes the report"
     )
     parser.add_argument(
-        "--snapshot", required=True, type=Path, help="caminho do Parquet"
+        "--snapshot", required=True, type=Path, help="path to the Parquet file"
     )
-    parser.add_argument("--modo", nargs="+", choices=MODES, default=list(MODES))
+    parser.add_argument("--mode", nargs="+", choices=MODES, default=list(MODES))
     parser.add_argument(
-        "--k", nargs="+", type=int, default=[3, 4, 5], help="limiar s/k"
+        "--k", nargs="+", type=int, default=[3, 4, 5], help="threshold s/k"
     )
     parser.add_argument(
-        "--intervalo", type=int, default=1, help="meses por bloco (modo blocos)"
+        "--interval", type=int, default=1, help="months per block (blocks mode)"
     )
-    parser.add_argument("--treino", type=int, default=95, help="percentual de treino")
-    parser.add_argument("--saida", type=Path, default=STD_FOLDER)
+    parser.add_argument("--train", type=int, default=95, help="train percentage")
+    parser.add_argument("--output", type=Path, default=STD_FOLDER)
     args = parser.parse_args()
 
     open_times, close, source = load_snapshot(args.snapshot)
@@ -785,16 +785,16 @@ def main():
             close,
             k,
             mode=mode,
-            interval_months=args.intervalo,
-            train_pct=args.treino,
+            interval_months=args.interval,
+            train_pct=args.train,
         )
-        for mode in args.modo
+        for mode in args.mode
         for k in args.k
     ]
     report = build_report(open_times, results, source)
 
-    args.saida.mkdir(parents=True, exist_ok=True)
-    base = args.saida / f"discretizacao_{source['ate_exclusivo']}"
+    args.output.mkdir(parents=True, exist_ok=True)
+    base = args.output / f"discretizacao_{source['until_exclusive']}"
     base.with_suffix(".json").write_text(
         json.dumps(report, indent=2, ensure_ascii=False) + "\n"
     )

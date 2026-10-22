@@ -1,6 +1,6 @@
 # Discretização dos retornos: decisões e uso
 
-Registro das decisões da discretização do fechamento do BTC/USDT em `{-1, 0, +1}`, implementada em `src/preprocess/discretizar.py`. Este documento é documentação do sistema: a justificativa formal e a redação da metodologia ficam para a monografia.
+Registro das decisões da discretização do fechamento do BTC/USDT em `{-1, 0, +1}`, implementada em `src/preprocess/discretize.py`. Este documento é documentação do sistema: a justificativa formal e a redação da metodologia ficam para a monografia.
 
 - **Escrito em:** 2026-10-22
 - **Dados:** snapshot `btc_usdt_2026-10-01` (957.853 candles de 5 minutos, de 2017-08-17 04:00 a 2026-09-30 23:55). Ver o README, etapa "Reconstruir a base a partir do snapshot".
@@ -12,7 +12,7 @@ Registro das decisões da discretização do fechamento do BTC/USDT em `{-1, 0, 
 |---|---|---|
 | D1 | Retorno logarítmico do fechamento, só entre candles adjacentes (5 min). | Adotada |
 | D2 | Limiar `s/k` parametrizável (`k` = 3, 4, 5), desvio amostral. | Adotada |
-| D3 | Modo `blocos`: o bloco `b` usa a média e o desvio do bloco `b-1`. | Adotada pela dupla; justificativa formal na monografia |
+| D3 | Modo `blocks`: o bloco `b` usa a média e o desvio do bloco `b-1`. | Adotada pela dupla; justificativa formal na monografia |
 | D4 | Modo `global`: uma média e um desvio só do treino. | Adotada (referência; é o que o TCC descreve hoje) |
 | D5 | Corte treino/teste em 95% das linhas; discretiza a série inteira e depois corta. | Adotada |
 | D6 | Lacunas detectadas e contadas; o retorno que as atravessa não gera símbolo e cada trecho contínuo é um segmento. | Detecção adotada. **Tratamento nas transições pendente** (ver D6) |
@@ -55,9 +55,9 @@ Com `mu` e `s` a média e o desvio **amostral** (`ddof=1`, como o TCC diz) dos r
 - Os pontos exatamente em `±s/k` ficam em `0`, como na equação do TCC.
 - `k` é qualquer número positivo; os valores do TCC são 3, 4 e 5.
 
-### D3. Modo `blocos` (causal)
+### D3. Modo `blocks` (causal)
 
-Os candles são agrupados em blocos de `intervalo` meses de calendário (padrão 1), contados a partir do mês do primeiro candle. **O bloco `b` é classificado com a média e o desvio do bloco `b-1`**, calculados só com os retornos válidos do `b-1`.
+Os candles são agrupados em blocos de `interval` meses de calendário (padrão 1), contados a partir do mês do primeiro candle. **O bloco `b` é classificado com a média e o desvio do bloco `b-1`**, calculados só com os retornos válidos do `b-1`.
 
 - **Por quê:** acompanha a mudança de volatilidade (Contexto) sem usar nenhum dado do futuro. Classificar um bloco com as estatísticas do próprio bloco daria a cada símbolo informação de candles posteriores, e impediria rodar o mesmo procedimento ao vivo, onde o desvio do mês corrente ainda não existe.
 - **O primeiro bloco só serve de histórico e fica sem símbolos.** No snapshot é agosto de 2017, que começa no dia 17: 4.271 símbolos a menos, 0,45% da série.
@@ -68,7 +68,7 @@ Os candles são agrupados em blocos de `intervalo` meses de calendário (padrão
   - A régua atrasa um bloco: numa mudança brusca de volatilidade, os primeiros dias do bloco novo são medidos com a régua do anterior.
   - Se o bloco anterior tiver desvio zero, ou menos de 2 retornos, ou estiver vazio, a discretização **falha com erro**, e não inventa um valor.
   - Nos blocos de teste, as estatísticas vêm de blocos anteriores que também são de teste. É causal, mas **não é literalmente "só do treino"**; essa é a divergência em relação ao texto atual do TCC, e é por isso que o modo `global` existe (D4).
-- **Tamanho do bloco:** o padrão de 1 mês é uma escolha inicial, ainda sem análise de sensibilidade. `--intervalo` permite testar outros.
+- **Tamanho do bloco:** o padrão de 1 mês é uma escolha inicial, ainda sem análise de sensibilidade. `--interval` permite testar outros.
 
 ### D4. Modo `global`
 
@@ -81,7 +81,7 @@ Uma média e um desvio, estimados **só nas linhas de treino** (`[0, corte)`) e 
 
 O treino são as primeiras 95% das **linhas de candles** (`(n * 95) // 100`, a mesma conta do `split_data` em `src/utils/data_manager.py`; um teste garante que as duas coincidem). No snapshot, o teste começa na linha 909.960 (2026-04-17 16:55).
 
-**Discretiza-se a série inteira e só depois corta-se.** No modo `blocos` isso é seguro porque cada símbolo depende só de dados anteriores a ele: os símbolos de treino saem idênticos com ou sem o teste (há um teste automatizado para isso, alterando o futuro). No modo `global`, o corte define quais linhas estimam `mu` e `s`.
+**Discretiza-se a série inteira e só depois corta-se.** No modo `blocks` isso é seguro porque cada símbolo depende só de dados anteriores a ele: os símbolos de treino saem idênticos com ou sem o teste (há um teste automatizado para isso, alterando o futuro). No modo `global`, o corte define quais linhas estimam `mu` e `s`.
 
 ### D6. Lacunas
 
@@ -92,36 +92,36 @@ Uma lacuna é um `open_time` que não está a 5 minutos do anterior. O snapshot 
 
 ### D7. Fonte dos dados e módulo live
 
-As funções de `discretizar.py` trabalham sobre arrays (`open_time` e `close`). O snapshot entra apenas por `load_snapshot`, que confere o SHA-256 do manifesto antes de usar o arquivo. Os experimentos do TCC rodam sobre o snapshot para serem reprodutíveis; **a apresentação ao vivo precisará de uma fonte com os dados mais recentes**, e o desenho aproveita o mesmo núcleo (ver "Proposta futura").
+As funções de `discretize.py` trabalham sobre arrays (`open_time` e `close`). O snapshot entra apenas por `load_snapshot`, que confere o SHA-256 do manifesto antes de usar o arquivo. Os experimentos do TCC rodam sobre o snapshot para serem reprodutíveis; **a apresentação ao vivo precisará de uma fonte com os dados mais recentes**, e o desenho aproveita o mesmo núcleo (ver "Proposta futura").
 
 ### D8. Marcador de posição sem símbolo
 
-`SEM_SIMBOLO = -128` (o menor `int8`). Fica fora de `{-1, 0, 1}` de propósito: se um array com marcador chegar a um modelo, `to_indices` levanta `ValueError` em vez de contar um símbolo que não existe. Os modelos devem receber `resultado.symbols[resultado.valid]`, ou, depois da adaptação da D6, cada segmento.
+`NO_SYMBOL = -128` (o menor `int8`). Fica fora de `{-1, 0, 1}` de propósito: se um array com marcador chegar a um modelo, `to_indices` levanta `ValueError` em vez de contar um símbolo que não existe. Os modelos devem receber `resultado.symbols[resultado.valid]`, ou, depois da adaptação da D6, cada segmento.
 
 ## Como usar
 
 Relatório sobre o snapshot, com os dois modos e `k` igual a 3, 4 e 5:
 
 ```
-python -m src.preprocess.discretizar --snapshot snapshot/btc_usdt_2026-10-01.parquet
+python -m src.preprocess.discretize --snapshot snapshot/btc_usdt_2026-10-01.parquet
 ```
 
 | Opção | Padrão | Significado |
 |---|---|---|
 | `--snapshot` | (obrigatória) | Parquet do snapshot, com o manifesto ao lado. |
-| `--modo` | `blocos global` | Um ou os dois modos. |
+| `--mode` | `blocks global` | Um ou os dois modos. |
 | `--k` | `3 4 5` | Limiares `s/k`. |
-| `--intervalo` | `1` | Meses por bloco (modo `blocos`). |
-| `--treino` | `95` | Percentual de treino. |
-| `--saida` | `relatorios/` | Pasta dos arquivos `discretizacao_<data>.md` e `.json`. |
+| `--interval` | `1` | Meses por bloco (modo `blocks`). |
+| `--train` | `95` | Percentual de treino. |
+| `--output` | `relatorios/` | Pasta dos arquivos `discretizacao_<data>.md` e `.json`. |
 
 Como biblioteca:
 
 ```python
-from src.preprocess import discretizar as d
+from src.preprocess import discretize as d
 
 open_times, close, fonte = d.load_snapshot("snapshot/btc_usdt_2026-10-01.parquet")
-r = d.discretize(open_times, close, k=3, mode="blocos")
+r = d.discretize(open_times, close, k=3, mode="blocks")
 
 r.symbols[r.valid]   # os símbolos, sem as posições sem retorno
 r.segment            # segmento contínuo de cada símbolo (-1 onde não há símbolo)
@@ -131,7 +131,7 @@ r.cut                # primeira linha do teste
 ## Verificações feitas
 
 - **Reprodução do legado.** Com a série inteira, `log_returns` + `fit_stats` + `classify` reproduzem a `normalize_data` gerada pela procedure em **100%** das 957.852 linhas comparáveis. O retorno e o limiar estão corretos.
-- **Testes** (`tests/test_discretizar.py`, 52 testes): ausência de vazamento (alterar o futuro não muda o passado, e o treino não depende do teste), estatísticas do bloco anterior, modo global só com o treino, lacunas e segmentos, `ddof=1`, fronteira do limiar, erros de entrada, relatório e carregador do snapshot.
+- **Testes** (`tests/test_discretize.py`, 52 testes): ausência de vazamento (alterar o futuro não muda o passado, e o treino não depende do teste), estatísticas do bloco anterior, modo global só com o treino, lacunas e segmentos, `ddof=1`, fronteira do limiar, erros de entrada, relatório e carregador do snapshot.
 - **Mutação.** Cinco defeitos injetados de propósito foram pegos pelos testes: bloco usando as próprias estatísticas, `ddof=0`, modo global usando a série toda, fronteira do limiar invertida e retorno atravessando a lacuna.
 
 ## Referências
@@ -142,8 +142,8 @@ r.cut                # primeira linha do teste
 ## Pendências
 
 1. **Lacunas nas transições (D6):** adaptar o `FirstOrder` para contar por segmento; HMM e MTD seguem o mesmo contrato quando forem tratados.
-2. **Sensibilidade ao tamanho do bloco** (`--intervalo`).
-3. **Texto do TCC:** a seção "Estratégia de discretização" descreve média e desvio só do treino, uma vez. Ao adotar o modo `blocos` como método principal, a metodologia precisa ser reescrita e justificada na monografia.
+2. **Sensibilidade ao tamanho do bloco** (`--interval`).
+3. **Texto do TCC:** a seção "Estratégia de discretização" descreve média e desvio só do treino, uma vez. Ao adotar o modo `blocks` como método principal, a metodologia precisa ser reescrita e justificada na monografia.
 4. **Gravar as discretizações no Postgres** com os parâmetros congelados (plano de arquitetura), em vez de só gerá-las em memória.
 5. **Módulo live** (abaixo).
 
@@ -155,7 +155,7 @@ r.cut                # primeira linha do teste
 
 **O que o desenho atual já permite.**
 
-- O modo `blocos` é causal: o símbolo de um candle novo só precisa da média e do desvio do bloco anterior, que já existem. O mesmo procedimento do treino funciona ao vivo.
+- O modo `blocks` é causal: o símbolo de um candle novo só precisa da média e do desvio do bloco anterior, que já existem. O mesmo procedimento do treino funciona ao vivo.
 - O núcleo recebe arrays; falta só um carregador com os candles mais recentes. O serviço `src/scrapping/background.py` já sincroniza a tabela `btc_usdt` a cada 5 minutos.
 
 **Peças previstas.**

@@ -5,15 +5,15 @@ import numpy as np
 import pytest
 
 from database import snapshot
-from src.preprocess import discretizar as d
+from src.preprocess import discretize as d
 from src.utils.data_manager import split_data
 from src.utils.symbols import to_indices
 
-PASSO = np.timedelta64(5, "m")
+STEP = np.timedelta64(5, "m")
 
 
 def grid(start, n):
-    return np.datetime64(start, "m") + np.arange(n) * PASSO
+    return np.datetime64(start, "m") + np.arange(n) * STEP
 
 
 def prices_from_returns(returns):
@@ -178,9 +178,9 @@ def test_first_block_has_no_symbols():
     times, returns, month = four_months()
     result = d.discretize(times, prices_from_returns(returns), k=3)
 
-    assert (result.symbols[month == 0] == d.SEM_SIMBOLO).all()
+    assert (result.symbols[month == 0] == d.NO_SYMBOL).all()
     # do segundo bloco em diante todo retorno válido recebe símbolo
-    assert (result.symbols[month >= 1] != d.SEM_SIMBOLO).all()
+    assert (result.symbols[month >= 1] != d.NO_SYMBOL).all()
 
 
 def test_each_block_uses_the_statistics_of_the_previous_block():
@@ -294,12 +294,12 @@ def test_gaps_remove_the_symbol_and_start_a_new_segment():
     result = d.discretize(times[keep], close[keep], k=3)
 
     gap_position = int(d.find_gaps(times[keep])[0][0])
-    assert result.symbols[gap_position] == d.SEM_SIMBOLO
-    assert result.symbols[gap_position - 1] != d.SEM_SIMBOLO
-    assert result.symbols[gap_position + 1] != d.SEM_SIMBOLO
+    assert result.symbols[gap_position] == d.NO_SYMBOL
+    assert result.symbols[gap_position - 1] != d.NO_SYMBOL
+    assert result.symbols[gap_position + 1] != d.NO_SYMBOL
     # o segmento muda entre o candle antes do buraco e o candle depois dele
     assert result.segment[gap_position + 1] == result.segment[gap_position - 1] + 1
-    assert (result.segment[result.symbols == d.SEM_SIMBOLO] == -1).all()
+    assert (result.segment[result.symbols == d.NO_SYMBOL] == -1).all()
 
 
 def test_symbols_with_a_value_are_accepted_by_to_indices_and_the_marker_is_not():
@@ -325,8 +325,8 @@ def test_global_mode_estimates_only_on_the_train_partition():
     mu, sigma = d.fit_stats(train[np.isfinite(train)])
 
     assert result.stats == {"mu": mu, "sigma": sigma}
-    assert result.symbols[0] == d.SEM_SIMBOLO  # o primeiro candle não tem retorno
-    assert (result.symbols[1:] != d.SEM_SIMBOLO).all()  # treino e teste recebem símbolo
+    assert result.symbols[0] == d.NO_SYMBOL  # o primeiro candle não tem retorno
+    assert (result.symbols[1:] != d.NO_SYMBOL).all()  # treino e teste recebem símbolo
 
 
 def test_global_mode_ignores_the_test_partition_for_the_parameters():
@@ -352,7 +352,7 @@ def test_global_mode_has_no_blocks_and_blocks_mode_has_them():
     close = prices_from_returns(returns)
 
     assert d.discretize(times, close, k=3, mode="global").block is None
-    assert d.discretize(times, close, k=3, mode="blocos").block is not None
+    assert d.discretize(times, close, k=3, mode="blocks").block is not None
 
 
 def test_invalid_mode_raises():
@@ -371,8 +371,8 @@ def report_for(keep=None):
     if keep is not None:
         times, close = times[keep], close[keep]
 
-    results = [d.discretize(times, close, k, mode=mode) for mode in d.MODOS for k in (3, 4, 5)]
-    source = {"arquivo": "x.parquet", "sha256": "abc", "ate_exclusivo": "2020-05-01", "linhas": len(times)}
+    results = [d.discretize(times, close, k, mode=mode) for mode in d.MODES for k in (3, 4, 5)]
+    source = {"file": "x.parquet", "sha256": "abc", "until_exclusive": "2020-05-01", "rows": len(times)}
     return d.build_report(times, results, source), times
 
 
@@ -382,22 +382,22 @@ def test_report_counts_records_gaps_and_classes():
     keep[20000:20010] = False  # 10 candles faltando
     report, times = report_for(keep)
 
-    assert report["registros"] == len(times)
-    assert report["lacunas"]["quantidade"] == 2
-    assert report["lacunas"]["candles_faltantes"] == 14
-    assert report["lacunas"]["segmentos"] == 3
-    assert report["lacunas"]["maior"]["candles_faltantes"] == 10
-    assert report["retornos_validos"] == len(times) - 1 - 2
-    assert len(report["resultados"]) == 6  # 2 modos x 3 limiares
+    assert report["records"] == len(times)
+    assert report["gaps"]["count"] == 2
+    assert report["gaps"]["missing_candles"] == 14
+    assert report["gaps"]["segments"] == 3
+    assert report["gaps"]["largest"]["missing_candles"] == 10
+    assert report["valid_returns"] == len(times) - 1 - 2
+    assert len(report["results"]) == 6  # 2 modos x 3 limiares
 
-    for entry in report["resultados"]:
-        geral = entry["distribuicao"]["geral"]
-        assert geral["total"] == entry["simbolos_gerados"]
+    for entry in report["results"]:
+        geral = entry["distribution"]["overall"]
+        assert geral["total"] == entry["symbols_generated"]
         assert geral["-1"] + geral["0"] + geral["1"] == geral["total"]
         # treino e teste somam o geral
-        parts = entry["distribuicao"]
-        assert parts["treino"]["total"] + parts["teste"]["total"] == geral["total"]
-        assert sum(row["total"] for row in entry["por_mes"]) == geral["total"]
+        parts = entry["distribution"]
+        assert parts["train"]["total"] + parts["test"]["total"] == geral["total"]
+        assert sum(row["total"] for row in entry["by_month"]) == geral["total"]
 
 
 def test_report_is_json_serializable_and_markdown_has_the_key_sections():
@@ -413,11 +413,11 @@ def test_report_is_json_serializable_and_markdown_has_the_key_sections():
 
 def test_blocks_report_lists_the_statistics_of_each_block():
     report, _ = report_for()
-    blocks_entry = next(e for e in report["resultados"] if e["modo"] == "blocos")
+    blocks_entry = next(e for e in report["results"] if e["mode"] == "blocks")
 
-    assert [b["bloco"] for b in blocks_entry["blocos"]] == [0, 1, 2, 3]
-    assert blocks_entry["blocos"][0]["sigma"] is None  # o primeiro bloco não tem histórico
-    assert blocks_entry["blocos"][1]["sigma"] is not None
+    assert [b["block"] for b in blocks_entry["blocks"]] == [0, 1, 2, 3]
+    assert blocks_entry["blocks"][0]["sigma"] is None  # o primeiro bloco não tem histórico
+    assert blocks_entry["blocks"][1]["sigma"] is not None
 
 
 # ---------- carregador do snapshot ----------
@@ -447,7 +447,7 @@ def test_load_snapshot_returns_times_prices_and_source(tmp_path):
 
     assert open_times[0] == np.datetime64("2020-01-01T00:00") and len(open_times) == 20
     assert close.tolist() == [100.0 + i for i in range(20)]
-    assert source["ate_exclusivo"] == "2020-02-01" and source["arquivo"] == parquet.name
+    assert source["until_exclusive"] == "2020-02-01" and source["file"] == parquet.name
     assert source["sha256"] == snapshot.sha256_arquivo(parquet)
 
 
