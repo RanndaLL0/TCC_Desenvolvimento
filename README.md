@@ -161,7 +161,17 @@ A ajuda de cada comando está em `python -m database.snapshot --help`, `... expo
      --notes "SHA-256 no manifesto: snapshot/btc_usdt_AAAA-MM-DD.manifest.json"
    ```
 
-### 5. Coleta dos candles
+### 5. Discretização
+
+Discretiza o fechamento do snapshot em `{-1, 0, +1}` e grava o relatório (registros, lacunas, parâmetros e distribuição de classes por limiar, partição e mês):
+
+```
+python -m src.preprocess.discretizar --snapshot snapshot/btc_usdt_2026-10-01.parquet
+```
+
+Por padrão roda os dois modos (`blocos` e `global`) com os limiares `s/3`, `s/4` e `s/5`, e escreve `relatorios/discretizacao_2026-10-01.md` e `.json`. As opções (`--modo`, `--k`, `--intervalo`, `--treino`, `--saida`), as decisões e os resultados estão em [`docs/discretizacao.md`](docs/discretizacao.md).
+
+### 6. Coleta dos candles
 
 Os dois comandos usam o `psql` e o `config.ini` e devem rodar na máquina que enxerga o PostgreSQL (a VM):
 
@@ -170,7 +180,7 @@ python src/scrapping/scrapping.py     # carga histórica completa, desde 2017-08
 python src/scrapping/background.py    # serviço contínuo: sincroniza a cada 5 minutos
 ```
 
-### 6. Testes
+### 7. Testes
 
 ```
 python -m pytest
