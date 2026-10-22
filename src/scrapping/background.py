@@ -39,7 +39,6 @@ def obter_cursor_ms():
     dt = datetime.strptime(ultimo, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
     return int(dt.timestamp() * 1000) + 1
 
-
 def ciclo():
 
     try:     
