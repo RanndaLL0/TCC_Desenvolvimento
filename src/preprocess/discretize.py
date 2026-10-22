@@ -14,40 +14,67 @@ import pyarrow.parquet as pq
 # close). O snapshot é só um carregador (load_snapshot), então uma fonte "ao
 # vivo" poderá reaproveitar o mesmo núcleo.
 
-RAIZ = Path(__file__).resolve().parents[2]
-PASTA_PADRAO = RAIZ / "relatorios"
+ROOT = Path(__file__).resolve().parents[2]
+STD_FOLDER = ROOT / "relatorios"
 
-PASSO = np.timedelta64(5, "m")
-MODOS = ("blocos", "global")
+OFF_SET = np.timedelta64(5, "m")
+MODES = ("blocos", "global")
 
 # Posição sem símbolo: primeiro candle, retorno que atravessa uma lacuna e, no
 # modo "blocos", o primeiro bloco (sem histórico). O valor está fora de
 # {-1, 0, 1} de propósito: se vazar para um modelo, to_indices levanta erro em
 # vez de contar um símbolo que não existe
-SEM_SIMBOLO = np.iinfo(np.int8).min
+NO_SYMBOL = np.iinfo(np.int8).min
 
 
 @dataclass(frozen=True)
 class Discretization:
+    """Resultado de uma discretização da série inteira.
+
+    Attributes:
+        mode: "blocos" ou "global".
+        k: divisor do limiar (o corte é sigma/k).
+        train_pct: percentual de treino usado no corte.
+        interval_months: meses por bloco (None no modo "global").
+        cut: primeira linha do teste; as linhas [0, cut) são o treino.
+        symbols: int8, uma posição por candle; SEM_SIMBOLO quando não há símbolo.
+        segment: int32, id do trecho contínuo (sem lacunas) de cada símbolo;
+            -1 onde não há símbolo.
+        block: int32, bloco de cada candle (None no modo "global").
+        stats: parâmetros usados (mu, sigma e, nos blocos, n) para o relatório.
+    """
+
     mode: str
     k: float
     train_pct: int
     interval_months: int | None
-    cut: int  # primeira linha do teste (as linhas [0, cut) são o treino)
-    symbols: np.ndarray  # int8, uma posição por candle; SEM_SIMBOLO quando não há
-    segment: (
-        np.ndarray
-    )  # int32, trecho contínuo (sem lacunas) de cada símbolo; -1 sem símbolo
-    block: np.ndarray | None  # int32, bloco de cada candle (só no modo "blocos")
-    stats: dict  # parâmetros usados (mu, sigma) para o relatório
+    cut: int
+    symbols: np.ndarray
+    segment: np.ndarray
+    block: np.ndarray | None
+    stats: dict
 
     @property
     def valid(self):
-        return self.symbols != SEM_SIMBOLO
+        """Máscara booleana das posições que têm símbolo."""
+        return self.symbols != NO_SYMBOL
 
 
-## Valida e devolve os open_time: estritamente crescentes e múltiplos de 5 minutos
 def _validate_times(open_times):
+    """Valida e devolve os open_time como array datetime64.
+
+    Args:
+        open_times: sequência 1D de datetime64.
+
+    Returns:
+        np.ndarray datetime64, estritamente crescente e com espaçamento múltiplo
+        de 5 minutos.
+
+    Raises:
+        ValueError: se não for 1D, tiver duplicados/ordem errada ou espaçamento
+            que não seja múltiplo de 5 minutos.
+        TypeError: se o dtype não for datetime64.
+    """
     times = np.asarray(open_times)
 
     if times.ndim != 1:
@@ -61,7 +88,7 @@ def _validate_times(open_times):
     if (deltas <= np.timedelta64(0, "m")).any():
         raise ValueError("open_times must be strictly increasing, without duplicates")
 
-    if (deltas % PASSO != np.timedelta64(0, "m")).any():
+    if (deltas % OFF_SET != np.timedelta64(0, "m")).any():
         raise ValueError(
             "the spacing between open_times must be a multiple of 5 minutes"
         )
@@ -69,22 +96,40 @@ def _validate_times(open_times):
     return times
 
 
-## Lacunas: posições onde o candle anterior NÃO está a 5 minutos (open_time[t] -
-# open_time[t-1] > 5 min). Devolve a posição do primeiro candle depois do buraco
-# e quantos candles faltam em cada um
 def find_gaps(open_times):
+    """Encontra as lacunas: onde open_time[t] - open_time[t-1] > 5 minutos.
+
+    Args:
+        open_times: sequência 1D de datetime64 (validada por _validate_times).
+
+    Returns:
+        Tupla (positions, missing). positions tem a posição do primeiro candle
+        depois de cada buraco; missing tem quantos candles faltam em cada um.
+    """
     times = _validate_times(open_times)
 
     deltas = np.diff(times)
-    before = np.flatnonzero(deltas > PASSO)
+    before = np.flatnonzero(deltas > OFF_SET)
 
-    return before + 1, (deltas[before] // PASSO) - 1
+    return before + 1, (deltas[before] // OFF_SET) - 1
 
 
-## Retorno logarítmico do fechamento entre candles ADJACENTES (5 minutos).
-# Fica NaN no primeiro candle e em todo candle logo depois de uma lacuna: o
-# retorno que atravessa um buraco não é um retorno de 5 minutos
 def log_returns(open_times, close):
+    """Calcula o retorno logarítmico do fechamento entre candles adjacentes.
+
+    O retorno que atravessa um buraco não é um retorno de 5 minutos, então
+    fica NaN o primeiro candle e todo candle logo depois de uma lacuna.
+
+    Args:
+        open_times: sequência 1D de datetime64, um por candle.
+        close: preços de fechamento, mesmo tamanho de open_times.
+
+    Returns:
+        np.ndarray float com um retorno por candle (NaN onde não há).
+
+    Raises:
+        ValueError: se os tamanhos diferirem ou close não for finito e positivo.
+    """
     times = _validate_times(open_times)
     prices = np.asarray(close, dtype=float)
 
@@ -101,9 +146,24 @@ def log_returns(open_times, close):
     return returns
 
 
-## Primeira linha do teste. Mesma conta do split_data (data_manager.py), para o
-# corte da discretização e o dos modelos serem o mesmo
 def cut_index(n, train_pct):
+    """Calcula a primeira linha do teste.
+
+    Usa a mesma conta do split_data (data_manager.py), para o corte da
+    discretização e o dos modelos serem o mesmo.
+
+    Args:
+        n: número de linhas da série.
+        train_pct: percentual de treino, inteiro entre 1 e 99.
+
+    Returns:
+        int com o índice de corte; as linhas [0, cut) são o treino.
+
+    Raises:
+        TypeError: se train_pct não for int.
+        ValueError: se train_pct estiver fora de 1..99 ou deixar treino ou
+            teste vazio.
+    """
     if not isinstance(train_pct, int) or isinstance(train_pct, bool):
         raise TypeError("train_pct should be an int like 95")
 
@@ -120,8 +180,20 @@ def cut_index(n, train_pct):
     return cut
 
 
-## Média e desvio padrão AMOSTRAL (ddof=1, como no TCC) dos retornos válidos
 def fit_stats(returns, context="returns"):
+    """Estima a média e o desvio padrão amostral (ddof=1, como no TCC).
+
+    Args:
+        returns: retornos válidos (sem NaN).
+        context: nome usado nas mensagens de erro.
+
+    Returns:
+        Tupla (mu, sigma) de floats.
+
+    Raises:
+        ValueError: se houver menos de 2 retornos ou o desvio for zero ou não
+            finito.
+    """
     values = np.asarray(returns, dtype=float)
 
     if values.size < 2:
@@ -136,10 +208,25 @@ def fit_stats(returns, context="returns"):
     return mu, sigma
 
 
-## Limiar s/k: -1 se (r - mu) < -s/k, +1 se (r - mu) > s/k e 0 caso contrário
-# (os pontos exatamente em ±s/k ficam em 0, como na equação do TCC). Note que k
-# divide o desvio: k=3 corta em s/3, e não em 3 desvios
 def classify(returns, mu, sigma, k):
+    """Discretiza retornos em {-1, 0, +1} pelo limiar sigma/k.
+
+    -1 se (r - mu) < -sigma/k, +1 se (r - mu) > sigma/k e 0 caso contrário. Os
+    pontos exatamente em ±sigma/k ficam em 0, como na equação do TCC. Note que
+    k divide o desvio: k=3 corta em sigma/3, e não em 3 desvios.
+
+    Args:
+        returns: retornos logarítmicos (array 1D, sem NaN).
+        mu: média usada para centrar os retornos.
+        sigma: desvio padrão que define a escala do limiar.
+        k: número positivo; o limiar é sigma/k.
+
+    Returns:
+        np.ndarray int8 com um símbolo (-1, 0 ou +1) por retorno.
+
+    Raises:
+        ValueError: se k não for um número positivo.
+    """
     if (
         isinstance(k, bool)
         or not isinstance(k, (int, float, np.integer, np.floating))
@@ -157,9 +244,23 @@ def classify(returns, mu, sigma, k):
     )
 
 
-## Bloco de cada candle: meses de calendário contados a partir do mês do
-# primeiro candle e agrupados de `interval_months` em `interval_months`
 def block_index(open_times, interval_months):
+    """Atribui um bloco a cada candle.
+
+    Os blocos são meses de calendário contados a partir do mês do primeiro
+    candle e agrupados de `interval_months` em `interval_months`.
+
+    Args:
+        open_times: sequência 1D de datetime64, um por candle.
+        interval_months: meses por bloco, inteiro >= 1.
+
+    Returns:
+        np.ndarray int32 com o número do bloco de cada candle (começa em 0).
+
+    Raises:
+        TypeError: se interval_months não for int.
+        ValueError: se interval_months < 1 ou open_times estiver vazio.
+    """
     if not isinstance(interval_months, int) or isinstance(interval_months, bool):
         raise TypeError("interval_months should be an int like 1")
 
@@ -176,19 +277,37 @@ def block_index(open_times, interval_months):
     return ((months - months[0]) // interval_months).astype(np.int32)
 
 
-## Discretiza a série inteira de uma vez.
-#
-# modo "blocos": o bloco b é classificado com a média e o desvio do bloco b-1
-#   (só dados anteriores, então nenhum símbolo depende do futuro). O primeiro
-#   bloco só serve de histórico e fica sem símbolos.
-# modo "global": uma única média e desvio, estimados só nas linhas de treino
-#   ([0, cut)), aplicados a treino e teste (a definição literal do TCC).
-#
-# Como o corte treino/teste é feito DEPOIS, sobre o resultado, o modo "blocos"
-# produz os mesmos símbolos de treino com ou sem o teste
 def discretize(open_times, close, k, mode="blocos", interval_months=1, train_pct=95):
-    if mode not in MODOS:
-        raise ValueError(f"mode must be one of {MODOS}, got {mode!r}")
+    """Discretiza a série inteira de uma vez.
+
+    Modo "blocos": o bloco b é classificado com a média e o desvio do bloco b-1
+    (só dados anteriores, então nenhum símbolo depende do futuro). O primeiro
+    bloco só serve de histórico e fica sem símbolos.
+
+    Modo "global": uma única média e desvio, estimados só nas linhas de treino
+    ([0, cut)), aplicados a treino e teste (a definição literal do TCC).
+
+    Como o corte treino/teste é feito DEPOIS, sobre o resultado, o modo
+    "blocos" produz os mesmos símbolos de treino com ou sem o teste.
+
+    Args:
+        open_times: sequência 1D de datetime64, um por candle.
+        close: preços de fechamento, mesmo tamanho de open_times.
+        k: divisor do limiar (o corte é sigma/k).
+        mode: "blocos" ou "global".
+        interval_months: meses por bloco (usado só no modo "blocos").
+        train_pct: percentual de treino, inteiro entre 1 e 99.
+
+    Returns:
+        Discretization com os símbolos, o segmento de cada candle e os
+        parâmetros usados.
+
+    Raises:
+        ValueError: se mode, k ou train_pct forem inválidos, ou se um mês do
+            modo "blocos" não tiver candles para estimar o bloco seguinte.
+    """
+    if mode not in MODES:
+        raise ValueError(f"mode must be one of {MODES}, got {mode!r}")
 
     times = _validate_times(open_times)
     returns = log_returns(times, close)
@@ -199,7 +318,7 @@ def discretize(open_times, close, k, mode="blocos", interval_months=1, train_pct
     # valida o k antes de qualquer trabalho
     classify(np.empty(0), 0.0, 1.0, k)
 
-    symbols = np.full(n, SEM_SIMBOLO, dtype=np.int8)
+    symbols = np.full(n, NO_SYMBOL, dtype=np.int8)
     block = None
 
     if mode == "global":
@@ -242,7 +361,7 @@ def discretize(open_times, close, k, mode="blocos", interval_months=1, train_pct
     gap_positions, _ = find_gaps(times)
     new_segment = np.zeros(n, dtype=np.int32)
     new_segment[gap_positions] = 1
-    segment = np.where(symbols != SEM_SIMBOLO, np.cumsum(new_segment), -1).astype(
+    segment = np.where(symbols != NO_SYMBOL, np.cumsum(new_segment), -1).astype(
         np.int32
     )
 
@@ -259,15 +378,31 @@ def discretize(open_times, close, k, mode="blocos", interval_months=1, train_pct
     )
 
 
-## Contagem dos símbolos -1, 0 e +1 (ignora as posições sem símbolo)
 def class_counts(symbols):
+    """Conta os símbolos -1, 0 e +1, ignorando as posições sem símbolo.
+
+    Args:
+        symbols: array de símbolos, possivelmente com SEM_SIMBOLO.
+
+    Returns:
+        np.ndarray com 3 contagens, na ordem (-1, 0, +1).
+    """
     values = np.asarray(symbols)
-    values = values[values != SEM_SIMBOLO]
+    values = values[values != NO_SYMBOL]
 
     return np.bincount(values.astype(int) + 1, minlength=3)
 
 
 def _distribution(counts):
+    """Monta a distribuição de classes a partir das contagens.
+
+    Args:
+        counts: contagens na ordem (-1, 0, +1), como em class_counts.
+
+    Returns:
+        dict com "total", a contagem de cada rótulo ("-1", "0", "1") e "pct"
+        (percentual de cada um, None se o total for zero).
+    """
     total = int(counts.sum())
     labels = ("-1", "0", "1")
 
@@ -282,7 +417,17 @@ def _distribution(counts):
 
 
 def _by_month(open_times, symbols):
-    valid = symbols != SEM_SIMBOLO
+    """Conta os símbolos de cada mês de calendário.
+
+    Args:
+        open_times: datetime64, um por candle.
+        symbols: símbolos de cada candle, possivelmente com SEM_SIMBOLO.
+
+    Returns:
+        Lista de dicts, um por mês com símbolos: "mes", "total", as contagens
+        "-1", "0", "1" e "pct_zero".
+    """
+    valid = symbols != NO_SYMBOL
     months, inverse = np.unique(
         open_times[valid].astype("datetime64[M]"), return_inverse=True
     )
@@ -307,6 +452,14 @@ def _by_month(open_times, symbols):
 
 
 def _by_year(by_month):
+    """Calcula o percentual de símbolo 0 de cada ano.
+
+    Args:
+        by_month: lista devolvida por _by_month.
+
+    Returns:
+        dict ano -> percentual de zeros (float, 2 casas).
+    """
     years = {}
 
     for row in by_month:
@@ -320,10 +473,29 @@ def _by_year(by_month):
 
 
 def _timestamp(value):
+    """Formata um datetime64 como "AAAA-MM-DD HH:MM:SS".
+
+    Args:
+        value: datetime64 escalar.
+
+    Returns:
+        str com a data e a hora, sem o "T" e com precisão de segundos.
+    """
     return np.datetime_as_string(value, unit="s").replace("T", " ")
 
 
 def _blocks_table(result, open_times):
+    """Monta a tabela de estatísticas de cada bloco (modo "blocos").
+
+    Args:
+        result: Discretization do modo "blocos".
+        open_times: datetime64, um por candle.
+
+    Returns:
+        Lista de dicts, um por bloco: "bloco", "primeiro_mes",
+        "retornos_do_bloco_anterior", "mu" e "sigma" (None no primeiro bloco,
+        que não tem histórico).
+    """
     stats = result.stats
     first_month = open_times[0].astype("datetime64[M]")
     rows = []
@@ -344,9 +516,20 @@ def _blocks_table(result, open_times):
     return rows
 
 
-## Relatório de uma execução: registros, lacunas, corte, parâmetros e a
-# distribuição de classes por limiar (geral, treino e teste) e por mês
 def build_report(open_times, results, source):
+    """Monta o relatório de uma execução.
+
+    Reúne registros, lacunas, corte, parâmetros e a distribuição de classes por
+    limiar (geral, treino e teste) e por mês.
+
+    Args:
+        open_times: datetime64, um por candle.
+        results: lista de Discretization da mesma série e do mesmo corte.
+        source: dict da fonte dos dados, como devolvido por load_snapshot.
+
+    Returns:
+        dict pronto para virar JSON ou para render_markdown.
+    """
     times = _validate_times(open_times)
     n = len(times)
     positions, missing = find_gaps(times)
@@ -422,13 +605,30 @@ def build_report(open_times, results, source):
     return report
 
 
-# o relatório em Markdown usa o formato brasileiro (milhar com ponto, decimal com
-# vírgula); o JSON guarda os números puros
 def _pct(value):
+    """Formata um percentual no padrão brasileiro (decimal com vírgula).
+
+    O relatório em Markdown usa o formato brasileiro; o JSON guarda os números
+    puros.
+
+    Args:
+        value: percentual (float) ou None.
+
+    Returns:
+        str como "12,34%", ou "-" quando value é None.
+    """
     return "-" if value is None else f"{value:.2f}%".replace(".", ",")
 
 
 def render_markdown(report):
+    """Renderiza o relatório em Markdown.
+
+    Args:
+        report: dict devolvido por build_report.
+
+    Returns:
+        str com o texto Markdown (milhar com ponto, decimal com vírgula).
+    """
     gaps = report["lacunas"]
     fonte = report["fonte"]
     corte = report["corte"]
@@ -524,9 +724,18 @@ def render_markdown(report):
     return "\n".join(lines)
 
 
-## Carrega open_time e close de um snapshot (database/snapshot.py), conferindo o
-# SHA-256 do manifesto antes de usar os dados
 def load_snapshot(parquet):
+    """Carrega open_time e close de um snapshot (database/snapshot.py).
+
+    Confere o SHA-256 do manifesto antes de usar os dados.
+
+    Args:
+        parquet: caminho do arquivo Parquet do snapshot.
+
+    Returns:
+        Tupla (open_times, close, source): os dois arrays e um dict com o nome
+        do arquivo, o SHA-256, o corte (ate_exclusivo) e o número de linhas.
+    """
     from database.snapshot import verify_checksum
 
     manifest = verify_checksum(parquet)
@@ -546,13 +755,18 @@ def load_snapshot(parquet):
 
 
 def main():
+    """Ponto de entrada: discretiza um snapshot e grava o relatório.
+
+    Gera um relatório .json e um .md para cada combinação de modo e k pedida
+    na linha de comando, e imprime os caminhos dos arquivos criados.
+    """
     parser = argparse.ArgumentParser(
         description="Discretiza o fechamento de um snapshot e grava o relatório"
     )
     parser.add_argument(
         "--snapshot", required=True, type=Path, help="caminho do Parquet"
     )
-    parser.add_argument("--modo", nargs="+", choices=MODOS, default=list(MODOS))
+    parser.add_argument("--modo", nargs="+", choices=MODES, default=list(MODES))
     parser.add_argument(
         "--k", nargs="+", type=int, default=[3, 4, 5], help="limiar s/k"
     )
@@ -560,7 +774,7 @@ def main():
         "--intervalo", type=int, default=1, help="meses por bloco (modo blocos)"
     )
     parser.add_argument("--treino", type=int, default=95, help="percentual de treino")
-    parser.add_argument("--saida", type=Path, default=PASTA_PADRAO)
+    parser.add_argument("--saida", type=Path, default=STD_FOLDER)
     args = parser.parse_args()
 
     open_times, close, source = load_snapshot(args.snapshot)
