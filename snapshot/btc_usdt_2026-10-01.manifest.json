@@ -1,0 +1,25 @@
+{
+  "tabela": "btc_usdt",
+  "ate_exclusivo": "2026-10-01",
+  "linhas": 957853,
+  "primeiro_open_time": "2017-08-17 04:00:00",
+  "ultimo_open_time": "2026-09-30 23:55:00",
+  "colunas": [
+    "open_time",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "close_time",
+    "quote_volume",
+    "trades",
+    "taker_buy_base",
+    "taker_buy_quote",
+    "symbol",
+    "interval"
+  ],
+  "formato": "parquet/zstd",
+  "sha256": "4c71d14999175cf62f037af5880db2554c03617228db82989fe76fdeb175bd4d",
+  "gerado_em": "2026-10-22T03:14:52+00:00"
+}

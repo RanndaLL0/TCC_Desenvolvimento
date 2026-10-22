@@ -8,6 +8,7 @@ Trabalho de Conclusão de Curso cujo objetivo é coletar dados históricos de ne
 - **NumPy** — geração de dados sintéticos e operações matriciais dos modelos
 - **psycopg 3** (`psycopg` + `psycopg-binary`) — driver de conexão com o PostgreSQL
 - **paramiko** + **sshtunnel** — abertura de túnel SSH para acesso seguro ao banco remoto
+- **pyarrow** — leitura e escrita do snapshot da base em Parquet (`database/snapshot.py`)
 - **cryptography**, **bcrypt**, **PyNaCl**, **cffi** — dependências de suporte do `paramiko`/`sshtunnel` para autenticação SSH
 - **PostgreSQL** — armazenamento dos dados de mercado
 - **psql (CLI)** — usado diretamente pelo serviço de scrapping para inserção em lote via `\copy`, evitando overhead de bibliotecas externas nesse ponto específico
@@ -95,13 +96,36 @@ psql -h <host> -U <usuario> -d <banco> -f database/schema.sql
 psql -h <host> -U <usuario> -d <banco> -f database/normalize_btc.sql
 ```
 
-O `schema.sql` cria `btc_usdt` (candles, com a chave primária que o `ON CONFLICT` do scrapping usa) e `normalize_data`. Depois de carregar os candles (etapa abaixo), gere a série discretizada com:
+O `schema.sql` cria `btc_usdt` (candles, com a chave primária que o `ON CONFLICT` do scrapping usa) e `normalize_data`. Depois de carregar os candles (pela coleta ou pelo snapshot, nas etapas abaixo), gere a série discretizada com:
 
 ```
 psql -h <host> -U <usuario> -d <banco> -c "CALL normalize_btc();"
 ```
 
-### 4. Coleta dos candles
+### 4. Reconstruir a base a partir do snapshot
+
+Sem acesso à VM, a base pode ser montada localmente a partir de um snapshot da tabela `btc_usdt` em Parquet (`snapshot/btc_usdt_2026-10-01.parquet`: 957.853 candles, de 2017-08-17 04:00 a 2026-09-30 23:55, 46 MiB). Ao lado dele fica o manifesto (`.manifest.json`), com o número de linhas, o período e o SHA-256 do arquivo.
+
+1. Crie um banco PostgreSQL vazio e aponte o `config.ini` para ele **sem a seção `[SSH_CONNECTION]`** (conexão direta, ver etapa 2).
+2. Restaure:
+   ```
+   python -m database.snapshot restore snapshot/btc_usdt_2026-10-01.parquet
+   ```
+   O comando confere o checksum **antes** de tocar no banco, aplica o `schema.sql`, carrega os candles e, ao final, confere linhas e período contra o manifesto (se algo não bater, a transação é desfeita). Ele só carrega em `btc_usdt` **vazia**: se o `config.ini` apontar para um banco que já tem dados, como a produção, nada é alterado.
+3. Gere a série discretizada legada com os comandos da etapa 3 (`normalize_btc.sql` e `CALL normalize_btc();`).
+4. Confira a conexão: `python -m database.index`.
+
+Para gerar um snapshot novo (exige acesso a um banco com os dados; a leitura é somente-leitura):
+
+```
+python -m database.snapshot export --ate 2026-10-01
+```
+
+O `--ate` é obrigatório e exclusivo (entram os candles com `open_time` anterior à data): como a coleta continua, sem uma data final o conteúdo mudaria a cada execução. O Parquet é ignorado pelo git (`.gitignore`); o manifesto é versionado.
+
+> **Pendente:** definir onde o Parquet será publicado (release do GitHub ou outro local).
+
+### 5. Coleta dos candles
 
 Os dois comandos usam o `psql` e o `config.ini` e devem rodar na máquina que enxerga o PostgreSQL (a VM):
 
@@ -110,7 +134,7 @@ python src/scrapping/scrapping.py     # carga histórica completa, desde 2017-08
 python src/scrapping/background.py    # serviço contínuo: sincroniza a cada 5 minutos
 ```
 
-### 5. Testes
+### 6. Testes
 
 ```
 python -m pytest

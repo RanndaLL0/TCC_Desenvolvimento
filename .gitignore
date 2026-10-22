@@ -13,3 +13,6 @@ __pycache__/
 *.pdf
 *.toc
 *.egg-info/
+
+# Snapshot da base: o Parquet (dezenas de MB) nao e versionado, o manifesto sim
+snapshot/*.parquet
