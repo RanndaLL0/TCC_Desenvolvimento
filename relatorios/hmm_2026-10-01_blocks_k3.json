@@ -1,0 +1,138 @@
+{
+  "generated_at": "2026-10-22T19:24:34+00:00",
+  "source": {
+    "file": "btc_usdt_2026-10-01.parquet",
+    "sha256": "4c71d14999175cf62f037af5880db2554c03617228db82989fe76fdeb175bd4d",
+    "until_exclusive": "2026-10-01",
+    "rows": 957853
+  },
+  "discretization": {
+    "mode": "blocks",
+    "k": 3,
+    "threshold": "s/3",
+    "interval_months": 1,
+    "train_pct": 95,
+    "first_test_row": 909960,
+    "train_symbols": 905654,
+    "test_symbols": 47893
+  },
+  "hmm": {
+    "symbols": [
+      -1,
+      0,
+      1
+    ],
+    "restarts": 10,
+    "max_iter": 1000,
+    "tolerance": 1e-08,
+    "seed": 0,
+    "e_step_blocks": null
+  },
+  "results": [
+    {
+      "n_states": 3,
+      "free_parameters": 14,
+      "ll_train": -928914.9088934701,
+      "ll_train_per_symbol": -1.0256841010954185,
+      "ll_test": -48632.51304844401,
+      "ll_test_per_symbol": -1.015440942276408,
+      "aic": 1857857.8177869401,
+      "bic": 1858021.847563531,
+      "fit_seconds": 283.322,
+      "iterations": 265,
+      "converged": true,
+      "best_restart": 9,
+      "restarts": [
+        {
+          "ll": -928915.3221777744,
+          "iteracoes": 242,
+          "convergiu": true
+        },
+        {
+          "ll": -928915.3182787808,
+          "iteracoes": 221,
+          "convergiu": true
+        },
+        {
+          "ll": -936832.5017268102,
+          "iteracoes": 1000,
+          "convergiu": false
+        },
+        {
+          "ll": -936837.6854548509,
+          "iteracoes": 1000,
+          "convergiu": false
+        },
+        {
+          "ll": -936814.1002666765,
+          "iteracoes": 1000,
+          "convergiu": false
+        },
+        {
+          "ll": -936824.7363798853,
+          "iteracoes": 1000,
+          "convergiu": false
+        },
+        {
+          "ll": -936817.5075063164,
+          "iteracoes": 1000,
+          "convergiu": false
+        },
+        {
+          "ll": -936808.8594154468,
+          "iteracoes": 1000,
+          "convergiu": false
+        },
+        {
+          "ll": -936830.4723069976,
+          "iteracoes": 1000,
+          "convergiu": false
+        },
+        {
+          "ll": -928914.9088934701,
+          "iteracoes": 265,
+          "convergiu": true
+        }
+      ],
+      "pi": [
+        1.996757024888873e-151,
+        4.448440788945683e-200,
+        1.0
+      ],
+      "A": [
+        [
+          0.9896347110749242,
+          0.005858887590355385,
+          0.004506401334720484
+        ],
+        [
+          0.008014459627135172,
+          0.9919855403728643,
+          5.453374036002076e-16
+        ],
+        [
+          0.013646273642065677,
+          4.354783290049743e-08,
+          0.9863536828101015
+        ]
+      ],
+      "B": [
+        [
+          0.26712959720314366,
+          0.4618810626693058,
+          0.2709893401275506
+        ],
+        [
+          0.39460777221915294,
+          0.21512548666681233,
+          0.3902667411140347
+        ],
+        [
+          0.11410486555807572,
+          0.7671201208117658,
+          0.11877501363015855
+        ]
+      ]
+    }
+  ]
+}
