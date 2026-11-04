@@ -1333,25 +1333,25 @@ A análise individual de cada um dos trabalhos relacionados permite compreender 
 \chapter{Desenvolvimento}
 \label{cap:desenvolvimento}
 
-Este capítulo apresenta a proposta de desenvolvimento metodológico desta pesquisa,
-detalhando os passos fundamentais planejados para alcançar o objetivo principal do projeto.
-Sendo o foco estruturar a solução proposta, a seção descreve como deverão ser conduzidas
+Este capítulo apresenta o desenvolvimento metodológico desta pesquisa,
+detalhando os passos fundamentais executados para alcançar o objetivo principal do projeto.
+Sendo o foco estruturar a solução proposta, a seção descreve como foram conduzidas
 a coleta de dados, a modelagem preditiva baseada em Cadeias de Markov de Alta Ordem
 e Modelos Ocultos de Markov, do inglês \textit{Hidden Markov Model} (HMM), e a avaliação de desempenho. Todas as decisões
-tecnológicas e arquiteturais delineadas para a etapa de implementação são fundamentadas
+tecnológicas e arquiteturais adotadas na etapa de implementação foram fundamentadas
 na revisão bibliográfica discutida no Capítulo \ref{cap:revisao}.
 
 % ---------------------------------------------------------------
 \section{Visão geral da solução}
 
-A solução proposta consiste na implementação de um modelo de predição direcional
+A solução proposta consistiu na implementação de um modelo de predição direcional
 para a série temporal do Bitcoin em janelas de cinco minutos, baseado em Cadeias de
 Markov de Alta Ordem segundo a formulação de \citeonline{RAFTERY1985}. O desempenho desse
-modelo será comparado ao de três modelos de referência, o HMM, o modelo de predição aleatório e o modelo de predição por persistência. Todos
-os modelos serão treinados a partir de uma série discreta, obtida pela discretização dos
+modelo foi comparado ao de três modelos de referência, o HMM, o modelo de predição aleatório e o modelo de predição por persistência. Todos
+os modelos foram treinados a partir de uma série discreta, obtida pela discretização dos
 retornos logarítmicos da série temporal do Bitcoin em um alfabeto de três símbolos
 ($-1$, $0$ e $1$), conforme a estratégia apresentada na Seção~\ref{discretizacao}. Por fim, os modelos
-treinados serão submetidos a testes estatísticos sobre o conjunto de teste, a fim de validar
+treinados foram submetidos a testes estatísticos sobre o conjunto de teste, a fim de validar
 sua capacidade preditiva por meio de métricas de classificação acurácia, precisão, \textit{recall},
 F1-\textit{score} e matriz de confusão, conforme discutido na Seção~\ref{avaliacao}.
 
@@ -1359,36 +1359,36 @@ F1-\textit{score} e matriz de confusão, conforme discutido na Seção~\ref{aval
 
 \begin{itemize}
 
-    \item \textbf{Coleta dos dados}: Os dados históricos serão coletados a partir da \textit{exchange Binance}, focando especificamente no par 
-    de negociação BTC/USD. A amostragem consistirá no preço de fechamento em janelas de cinco minutos, abrangendo um período de nove anos e 
+    \item \textbf{Coleta dos dados}: Os dados históricos foram coletados a partir da \textit{exchange Binance}, focando especificamente no par
+    de negociação BTC/USD. A amostragem consistiu no preço de fechamento em janelas de cinco minutos, abrangendo um período de nove anos e
     totalizando aproximadamente 920 mil registros.
 
     \item \textbf{Limpeza e Tratamento de Dados Ausentes}: Visando garantir a reprodutibilidade e a integridade estatística da série,
-    utilizaremos de uma etapa de pré processamento. Janelas temporais faltantes (\textit{gaps}) geradas por falhas de registro ou 
-    períodos de manutenção da corretora serão identificadas. Para evitar a geração de retornos logarítmicos errados devido a saltos temporais, 
-    irá ser adotado o descarte das observações no momento da falha. Dessa forma, o cálculo de retorno ocorrerá exclusivamente entre janelas de cinco 
-    minutos consecutivas. Valores discrepantes (\textit{outliers}) decorrentes de anomalias de registro também serão descartados nesta etapa.
+    utilizou-se uma etapa de pré-processamento. Janelas temporais faltantes (\textit{gaps}) geradas por falhas de registro ou
+    períodos de manutenção da corretora foram identificadas. Para evitar a geração de retornos logarítmicos errados devido a saltos temporais,
+    adotou-se o descarte das observações no momento da falha. Dessa forma, o cálculo de retorno ocorreu exclusivamente entre janelas de cinco
+    minutos consecutivas. Valores discrepantes (\textit{outliers}) decorrentes de anomalias de registro também foram descartados nesta etapa.
 
-    \item \textbf{Tratamento e discretização dos dados}: Os dados são discretizados utilizando
-    a estratégia apresentada na Seção~\ref{discretizacao}, assim obtendo uma nova série temporal de
-    símbolos pertencentes ao alfabeto simbólico, a qual será repartida em conjunto
+    \item \textbf{Tratamento e discretização dos dados}: Os dados foram discretizados utilizando
+    a estratégia apresentada na Seção~\ref{discretizacao}, obtendo-se assim uma nova série temporal de
+    símbolos pertencentes ao alfabeto simbólico, a qual foi repartida em conjunto
     de treinamento e teste.
 
     \item \textbf{Separação dos Dados Históricos}:
-    Considerando a evolução estrutural de criptoativos 
-    que os fez sair de um nicho tecnológico para um fenômeno financeiro global \cite{MAKAROV2022}, 
-    será realizada a divisão do conjunto de dados em subamostras. Como as séries financeiras 
-    naturalmente apresentam quebras estruturais, alternando entre fases de alta, baixa e 
-    lateralização que afastam a propriedade de estacionariedade em  longas janelas de tempo \cite{morettin2018analise}, o intuito 
-    dessa divisão é mitigar um possível viés de homogeneidade.
+    Considerando a evolução estrutural de criptoativos
+    que os fez sair de um nicho tecnológico para um fenômeno financeiro global \cite{MAKAROV2022},
+    foi realizada a divisão do conjunto de dados em subamostras. Como as séries financeiras
+    naturalmente apresentam quebras estruturais, alternando entre fases de alta, baixa e
+    lateralização que afastam a propriedade de estacionariedade em  longas janelas de tempo \cite{morettin2018analise}, o intuito
+    dessa divisão foi mitigar um possível viés de homogeneidade.
 
-    \item \textbf{Treinamento e adequação dos Modelos Preditivos}: O conjunto de treinamento agora discretizado será utilizado 
+    \item \textbf{Treinamento e adequação dos Modelos Preditivos}: O conjunto de treinamento discretizado foi utilizado
     para alimentar e ajustar as Cadeias de Markov e o modelo HMM.
 
-    \item \textbf{Testes Estatísticos, Comparações e Predição}: Os modelos de predição agora já treinados irão realizar as predições 
-    sobre o conjunto de dados separado para os testes. A adequação dos modelos será avaliada através dos métodos estatísticos 
-    descritos na Seção~\ref{avaliacao}. De forma crucial para a validação da hipótese deste estudo, a superação dos modelos empíricos 
-    (aleatório e persistência) não será medida apenas pela taxa de acerto global, mas pela capacidade da 
+    \item \textbf{Testes Estatísticos, Comparações e Predição}: Os modelos de predição já treinados realizaram as predições
+    sobre o conjunto de dados separado para os testes. A adequação dos modelos foi avaliada através dos métodos estatísticos
+    descritos na Seção~\ref{avaliacao}. De forma crucial para a validação da hipótese deste estudo, a superação dos modelos empíricos
+    (aleatório e persistência) não foi medida apenas pela taxa de acerto global, mas pela capacidade da
     matriz de confusão e do F1-Score em atestar a correta predição das classes (1 e -1), que representam os movimentos direcionais de interesse.
 
 \end{itemize}
