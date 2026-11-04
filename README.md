@@ -43,6 +43,8 @@ src/
   models/
     naive_models/
       first-order-markov.py   # cadeia de Markov de 1ª ordem (matriz de transição + log-verossimilhança)
+    mtd/
+      mtd.py                  # MTD de ordem l: treino por EM (Lèbre & Bourguignon), log-verossimilhança e predict_proba
     hmm/
       hmm.py                  # HMM: forward-backward (com escalonamento) e Baum-Welch (EM) sobre a série real
   utils/
@@ -190,6 +192,8 @@ python -m pytest
 
 - **Cadeia de Markov de 1ª ordem** (`first-order-markov.py`): monta a matriz de transição (3x3: queda/estável/alta) a partir de `pegar_dados()` e calcula a log-verossimilhança do modelo ajustado.
 - **HMM** (`hmm.py`): implementa o algoritmo _forward-backward_ com escalonamento (baseado em Jurafsky) e o treinamento via **Baum-Welch** (EM), rodando sobre a série real (`close_normalized`) obtida do banco. Ainda em fase de teste/validação dos resultados (`max_iter` reduzido, sem critério de parada refinado).
+
+- **MTD** (`src/models/mtd/mtd.py`): classe `MTD(order)` com uma única matriz `Q` (3x3) compartilhada entre os lags e pesos `lam` por lag, treinada por EM (kernel numba em blocos paralelos, reinícios com sementes e piso como pseudocontagem). Com `order=1` coincide com a cadeia de 1ª ordem. Testes em `tests/test_mtd.py`. Ainda não validado na série real nem integrado ao BIC.
 
 ## Próximos passos
 
