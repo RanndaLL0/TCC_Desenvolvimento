@@ -48,7 +48,7 @@ src/
     hmm/
       hmm.py                  # HMM: forward-backward (com escalonamento) e Baum-Welch (EM) sobre a série real
   utils/
-    bic.py                    # (a implementar) critério de informação bayesiano
+    bic.py                    # bic(ll, n_params, n_obs): critério de informação bayesiano (-2*LL + p*log(n))
 ```
 
 ## Como executar
