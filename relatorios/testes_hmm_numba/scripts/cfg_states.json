@@ -1,0 +1,34 @@
+{
+ "b3_n4": {
+  "mode": "blocks",
+  "k": 3,
+  "n": 4,
+  "restarts": 40,
+  "max_iter": 3000,
+  "prio": 0
+ },
+ "b3_n5": {
+  "mode": "blocks",
+  "k": 3,
+  "n": 5,
+  "restarts": 30,
+  "max_iter": 4000,
+  "prio": 1
+ },
+ "b3_n3": {
+  "mode": "blocks",
+  "k": 3,
+  "n": 3,
+  "restarts": 50,
+  "max_iter": 3000,
+  "prio": 2
+ },
+ "b3_n2": {
+  "mode": "blocks",
+  "k": 3,
+  "n": 2,
+  "restarts": 20,
+  "max_iter": 3000,
+  "prio": 3
+ }
+}

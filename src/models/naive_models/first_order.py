@@ -2,24 +2,23 @@ import numpy as np
 
 from src.utils.symbols import to_indices
 
-
 class FirstOrder:
     def __init__(self):
         self.matrix = np.zeros((3, 3), int)
         self.prob = None
 
-    # função auxiliar para ver se a prob das linhas soma 1
-    def _prob_lines_all_equals_one(self, data):
-        sums = data.sum(axis=1, keepdims=True)
-        if not np.allclose(sums, 1):
-            elements = np.any(~np.isclose(sums, 1), axis=1)
+    # função auxiliar para ver se a prob das lins=1)
             raise ValueError(
                 f"the line {np.flatnonzero(elements)} did not sum probability to 1"
             )
 
         return True
 
-    ## para a matriz de transição vou somar um nos dados vindos
+    ## para a matriz de transição vou somahas soma 1
+    def _prob_lines_all_equals_one(self, data):
+        sums = data.sum(axis=1, keepdims=True)
+        if not np.allclose(sums, 1):
+            elements = np.any(~np.isclose(sums, 1), axir um nos dados vindos
     # para ficar com o índice correto na matriz
     # ent a coluna 0 é na verade quando houve um retorno a baixo
     def fit(self, data):
