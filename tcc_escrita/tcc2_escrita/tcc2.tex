@@ -621,6 +621,7 @@ As séries financeiras, embora compartilhem da estrutura geral descrita acima, p
 em que $P_t$ é o preço do ativo no instante $t$ e $p_t = \ln(P_t)$ denota o logaritmo natural do preço nesse mesmo instante \cite{morettin2018analise}. A passagem para os retornos logarítmicos confere à série propriedades convenientes para a modelagem, tais como a aditividade temporal e a estabilização da variância. Por exemplo, caso um ativo sofra uma queda de $25\%$ seguida de uma alta de $25\%$, o valor do ativo irá permanecer inalterado.
 
 \subsubsection{Estacionariedade e autocorrelação}
+\label{subsubsec:estacionariedade}
 
 Uma das suposições mais recorrentes na análise de séries temporais é a de estacionariedade, segundo a qual a série se desenvolve aleatoriamente no tempo em torno de uma média constante, refletindo um comportamento de equilíbrio e constância. Na prática, as séries temporais não costumam apresentar algum tipo de estacionariedade no seu comportamento. As séries financeiras, em particular, costumam exibir tendências, fases de alta, de baixa e de lateralização, o que afasta a propriedade de estacionariedade quando se trabalha diretamente com a série de preços \cite{morettin2018analise}.
 
@@ -1458,24 +1459,129 @@ F1-\textit{score} e matriz de confusão, conforme discutido na Seção~\ref{aval
 \section{Detalhes da implementação}
 \label{sec:implementacao}
 
-Explique a modelagem e a arquitetura da solução (diagramas UML, blocos ou fluxogramas que mostrem como os módulos se relacionam e atendem ao problema), as escolhas tecnológicas, as estruturas de dados e as integrações. Quando esclarecerem decisões de pesquisa, inclua trechos de código relevantes ou pseudoexemplos. Caso o trabalho envolva dados, descreva também como eles foram coletados (logs, sensores, APIs), armazenados e preparados (limpeza, normalização, anonimização).
+Esta seção detalha toda a implementação desenvolvida neste trabalho.
 
-% ---------------------------------------------------------------
-% EXEMPLO DE INSERÇÃO DE FIGURA (substitua pela sua imagem)
-% A imagem deve ficar na pasta assets/ (ex.: assets/figures/arquitetura.png).
-% ORDEM ABNT: o título (\caption) vem ACIMA da figura e a fonte
-% (\legend) vem ABAIXO. Por isso \caption e \label aparecem ANTES do
-% \includegraphics. Use \ref{...} para citar a figura no texto.
-% ---------------------------------------------------------------
-\begin{figure}[htb]
-    \centering
-    \caption{Exemplo de inserção de figura --- substitua pelo diagrama da arquitetura da sua solução.}
-    \label{fig:arquitetura}
-    \includegraphics[width=0.35\textwidth]{assets/logo-senac.png}
-    \legend{Fonte: Elaborado pelo autor (2025)}
-\end{figure}
+% 3.3.1
+\subsection{Lacunas e segmentos contínuos}
+\label{subsec:lacunas}
+Como explicado na coleta de dados, nossa fonte, a API da Binance, pode apresentar perda de dados. Para garantir a 
+reprodutibilidade dos experimentos, fixamos um período de dados, que chamamos de \textit{snapshot} e detalhamos na 
+Seção~\ref{subsec:ambiente}. A \textit{snapshot} usada neste estudo contém os dados 
+disponíveis via API da Binance de 2017-08-17 04:00 até 2026-09-30 23:55, e as métricas observadas nesse período estão na 
+Tabela~\ref{tab:lacunas}.
 
-Toda figura deve ser numerada, ter legenda (\verb|\caption|) e indicação de fonte, além de ser citada no texto --- por exemplo, a Figura~\ref{fig:arquitetura}. As figuras com legenda aparecem automaticamente na \textit{Lista de ilustrações}, nos elementos pré-textuais.
+\begin{table}[htb]
+  \centering
+  \caption{\textit{Candles}, lacunas e segmentos da \textit{snapshot}}
+  \label{tab:lacunas}
+  \begin{tabular}{lr}
+    \toprule
+    Grandeza & Valor \\
+    \midrule
+    \textit{Candles} na \textit{snapshot} & 957.853 \\
+    Lacunas & 34 \\
+    \textit{Candles} faltantes & 1.715 \\
+    Segmentos contínuos & 35 \\
+    \bottomrule
+  \end{tabular}
+  \legend{Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+\begin{itemize}
+\item \textit{Candle}: registro de um intervalo de 5 minutos.
+\item \textit{Lacuna}: ausência de pelo menos um \textit{candle} entre um horário de captura e o próximo.
+\item \textit{Segmento}: sequência contínua de capturas, delimitada por lacunas.
+\end{itemize}
+
+As lacunas e os segmentos são fundamentais para uma discretização correta, pois ignorar as lacunas levaria a tratar retornos 
+de intervalos superiores a 5 minutos como se fossem retornos de 5 minutos. Por exemplo: imagine que a API da Binance tenha 
+ficado fora do ar das 10:30 às 11:30 UTC. Se a captura das 10:30 registrou o valor de fechamento 61.130.48USD\$ e a das 11:30, já com a API de volta, 
+registrou o valor 61.131.42USD\$, não é correto calcular o retorno entre esses dois valores na discretização, pois o retorno de 10:30 para 
+11:30 não é válido. Nesse caso, há uma lacuna das 10:35 às 11:25 e, portanto, dois segmentos nesse dia.
+
+% 3.3.2
+\subsection{Retorno e Limiares}
+\label{subsec:retorno}
+
+Em nossa discretização, calculamos o retorno logarítmico (Equação~\ref{retorno_logaritmico}) sobre a lista de \textit{candles}, 
+comparando sempre o \textit{candle} atual com o anterior. Assim, o primeiro \textit{candle} de cada segmento não gera retorno, 
+por não possuir um \textit{candle} anterior. O retorno só é calculado entre \textit{candles} consecutivos. Portanto, um retorno 
+que atravessa dois segmentos, não é gerado (Seção~\ref{subsec:lacunas}).
+
+Categorizamos os retornos pela Equação~\ref{discretizacao_eq}, com corte $s/k$, em que $k$ é um parâmetro inteiro. 
+Nosso principal limiar é $s/3$. Notamos, em um de nossos trabalhos de referência \cite{ARAUJO}, uma lacuna: o uso de um único 
+limiar para a discretização em três símbolos. Para suprir essa lacuna, empregamos neste trabalho diferentes limiares, o que 
+permite comparar o desempenho dos modelos em cada discretização.
+
+A Tabela~\ref{tab:distribuicao} 
+apresenta a distribuição dos símbolos nos dois modos de discretização (Seção~\ref{subsec:discretizacao}). 
+Observa-se nela que o parâmetro $k$ controla a largura da faixa do símbolo 0. Quanto maior o $k$, mais estreita é a faixa e 
+menor é a proporção de símbolos 0. No modo \textit{Blocks}, por exemplo, com $k = 3$ temos uma proporção considerável de símbolos 
+0, cerca de 42\%, e essa proporção diminui à medida que $k$ aumenta.
+
+\begin{table}[htb]
+  \centering
+  \caption{Distribuição percentual dos símbolos, em \%, por modo de discretização e limiar}
+  \label{tab:distribuicao}
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{llrccc@{\hspace{1.5em}}ccc@{\hspace{1.5em}}ccc}
+    \toprule
+    \multirow{2}{*}{Modo} & \multirow{2}{*}{Limiar} & \multirow{2}{*}{Símbolos} & \multicolumn{3}{c}{Geral} & \multicolumn{3}{c}{Treino} & \multicolumn{3}{c}{Teste} \\
+    \cmidrule(lr){4-6} \cmidrule(lr){7-9} \cmidrule(lr){10-12}
+     &  &  & $-1$ & $0$ & $+1$ & $-1$ & $0$ & $+1$ & $-1$ & $0$ & $+1$ \\
+    \midrule
+    \textit{Blocks} & $s/3$ & 953.547 & 28,77 & 42,41 & 28,82 & 28,78 & 42,33 & 28,89 & 28,57 & 43,83 & 27,61 \\
+    \textit{Blocks} & $s/4$ & 953.547 & 33,21 & 33,51 & 33,28 & 33,23 & 33,41 & 33,36 & 32,84 & 35,36 & 31,80 \\
+    \textit{Blocks} & $s/5$ & 953.547 & 36,15 & 27,64 & 36,22 & 36,17 & 27,53 & 36,29 & 35,67 & 29,56 & 34,77 \\
+    \midrule
+    \textit{Global} & $s/3$ & 957.818 & 23,98 & 51,87 & 24,15 & 24,39 & 51,02 & 24,58 & 16,18 & 67,96 & 15,85 \\
+    \textit{Global} & $s/4$ & 957.818 & 28,86 & 42,15 & 28,98 & 29,25 & 41,35 & 29,41 & 21,62 & 57,45 & 20,94 \\
+    \textit{Global} & $s/5$ & 957.818 & 32,27 & 35,36 & 32,37 & 32,62 & 34,61 & 32,76 & 25,59 & 49,59 & 24,82 \\
+    \bottomrule
+  \end{tabular}%
+  }
+  \legend{Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+% 3.3.3
+\subsection{Modos de discretização: \textit{Global} e \textit{Blocks}}
+\label{subsec:discretizacao}
+
+Neste estudo decidimos usar dois modos de discretização. No modo \textit{Global}, a média e o desvio padrão $s$ são calculados 
+uma única vez, sobre todos os dados de treinamento, e usados na discretização de toda a série (Seção~\ref{subsec:retorno}).
+
+O modo \textit{Blocks} parte da ideia de que a série do Bitcoin muda muito com o tempo e, portanto, não é estacionária (Seção~\ref{subsubsec:estacionariedade}), sendo motivado por trabalhos de 
+normalização adaptativa \cite{URETTINI2024}. Nele, os dados são agrupados em blocos consecutivos de $n$ meses e a média e o desvio padrão são calculados 
+para cada bloco. Os retornos de um bloco são classificados com as estatísticas do bloco anterior, de modo que nenhum símbolo é 
+classificado com informação posterior a ele. Em nossos experimentos principais usamos $n = 1$, e também variamos $n$ em 2, 3, 6 
+e 12 meses. A escolha de $n$ é um compromisso: blocos longos sofrem de não estacionariedade interna, e blocos curtos produzem 
+estimativas ruidosas \cite{URETTINI2024}.
+
+O modo \textit{Blocks} tem duas consequências. A primeira é que o primeiro bloco serve apenas para estimar as estatísticas do bloco 
+seguinte e não gera símbolos. Com $n = 1$ perdemos o primeiro mês (agosto de 2017), e essa perda cresce com $n$. O conjunto de 
+treinamento passa de 905.654 símbolos, com $n = 1$, para 810.244, com $n = 12$. A segunda é que os retornos do conjunto de teste 
+não dependem exclusivamente do conjunto de treinamento, uma vez que um bloco já presente no conjunto de teste pode categorizar 
+o bloco seguinte, também presente no conjunto de teste. Isso não utiliza informação futura, apenas dados já disponíveis naquele 
+momento, e difere do modo \textit{Global}, em que o teste é discretizado exclusivamente com estatísticas do treinamento.
+
+A Tabela~\ref{tab:distribuicao} mostra 
+por que mantivemos os dois modos. No modo \textit{Global} com limiar $s/3$, a proporção de símbolos 0 passa de 51,02\% no 
+treinamento para 67,96\% no teste, porque a volatilidade do período de teste é menor que a média do treinamento. No modo 
+\textit{Blocks}, com o mesmo limiar, passa de 42,33\% para 43,83\%. Isso é coerente com a literatura de normalização adaptativa, 
+segundo a qual estatísticas estimadas no treinamento só bastam quando a série é estacionária \cite{URETTINI2024}.
+
+%3.3.4
+\subsection{Divisão treino e teste}
+\label{subsec:divisao}
+%3.4.1
+\subsection{Modelos de referência}
+\label{subsec:modelos_ref}
+%3.4.2
+\subsection{MTD}
+\label{subsec:mtd_metodologia}
+%3.5.4
+\subsection{Ambiente e reprodutibilidade}
+\label{subsec:ambiente}
 
 \section{Experimentos e cenário de testes (opcional)}
 \label{sec:experimentos}
