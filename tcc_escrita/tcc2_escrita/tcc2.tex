@@ -1573,15 +1573,122 @@ segundo a qual estatísticas estimadas no treinamento só bastam quando a série
 %3.3.4
 \subsection{Divisão treino e teste}
 \label{subsec:divisao}
+
+Para nossos experimentos seguimos a proporção de treino e teste usada por \citeonline{Nascimento2023}, onde 95\% dos dados são usados para 
+treinar os modelos, e 5\% são usados para testá-los. A divisão é cronológica, sem embaralhamento, e o corte é feito sobre os
+\textit{candles}, antes do cálculo dos retornos. O modo de discretização afeta diretamente o tamanho do conjunto de treino.
+Na Seção~\ref{subsec:discretizacao} destacamos como a discretização por blocos é feita. Uma de suas características é usar as
+estatísticas do bloco anterior para categorizar os retornos do bloco atual. Desta forma, o primeiro bloco não possui símbolos e
+serve apenas para categorizar o bloco seguinte. Por este motivo, ao aumentar o número de meses de cada bloco perdemos parte do
+conjunto de treino, enquanto o conjunto de teste permanece com o mesmo tamanho. A Tabela~\ref{tab:divisao} mostra essa proporção
+para diferentes tamanhos de bloco.
+
+\begin{table}[htb]
+  \centering
+  \caption{Proporção entre treino e teste, em número de símbolos, por modo de discretização e intervalo de atualização $n$ (idêntica para todo $k$ de 1 a 10)}
+  \label{tab:divisao}
+  \begin{tabular}{llrrrrr}
+    \toprule
+    Modo & $n$ (meses) & Treino & Teste & Total & Treino (\%) & Teste (\%) \\
+    \midrule
+    \textit{Global} & --- & 909.925 & 47.893 & 957.818 & 95,00 & 5,00 \\
+    \midrule
+    \textit{Blocks} & 1 & 905.654 & 47.893 & 953.547 & 94,98 & 5,02 \\
+    \textit{Blocks} & 2 & 897.098 & 47.893 & 944.991 & 94,93 & 5,07 \\
+    \textit{Blocks} & 3 & 888.170 & 47.893 & 936.063 & 94,88 & 5,12 \\
+    \textit{Blocks} & 6 & 861.723 & 47.893 & 909.616 & 94,73 & 5,27 \\
+    \textit{Blocks} & 12 & 810.244 & 47.893 & 858.137 & 94,42 & 5,58 \\
+    \bottomrule
+  \end{tabular}
+  \legend{Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+O modo \textit{Global}, por sua vez, não perde símbolos além dos retornos inexistentes (o primeiro \textit{candle} e as lacunas,
+Seção~\ref{subsec:lacunas}), pois todos os retornos válidos são convertidos em símbolos. Por isso a proporção de 95\% e 5\% é
+praticamente exata, já que o corte é feito sobre os \textit{candles}.
+
 %3.4.1
 \subsection{Modelos de referência}
 \label{subsec:modelos_ref}
+
+Neste trabalho chamamos de modelos de referência os seguintes modelos:
+
+\begin{itemize}
+  \item Markov de primeira ordem: uma matriz de transição simples olhando para o estado imediatamente anterior.
+  \item Modelo de persistência: o modelo de persistência escolhe sempre a mesma constante, $-1$, $0$ ou $+1$.
+  \item Modelo aleatório: atribui probabilidade $1/3$ a cada símbolo, independentemente do estado anterior.
+\end{itemize}
+
+Em nossos experimentos usamos principalmente o modelo de persistência para comparação com os modelos-alvo do trabalho. O modelo de persistência
+é usado na comparação com a sua melhor constante. Por exemplo, suponha que, ao prever apenas a direção do movimento, o modelo que
+escolhe sempre $+1$ (o preço sempre sobe) atinja um acerto de 46,2\%, enquanto o que escolhe sempre $-1$ (o preço sempre cai)
+atinja 50,7\%. Neste caso, usaremos como referência a constante de maior acerto.
+
+Em nossos relatórios buscamos responder duas perguntas:
+
+\begin{enumerate}
+  \item Haverá uma movimentação significante no mercado? 
+  \item Se houver uma movimentação significante, qual o sinal dela?
+\end{enumerate}
+
+Movimentações significantes são todas as movimentações que ficam acima ou abaixo do nosso limiar empregado na discretização. O modelo de persistência é muito 
+utilizado em nossos experimentos para ajudar a comparar nossos modelos-alvo na segunda pergunta. As perguntas respondidas e os resultados dos experimentos serão 
+detalhados na Seção~\ref{sec:resultados}.
+
 %3.4.2
 \subsection{MTD}
 \label{subsec:mtd_metodologia}
+
 %3.5.4
 \subsection{Ambiente e reprodutibilidade}
 \label{subsec:ambiente}
+
+A coleta dos dados continua em andamento, e a API da Binance pode revisar ou perder registros (Seção~\ref{subsec:lacunas}). Por isso,
+uma consulta feita em outra data produziria uma série diferente. Para que os experimentos possam ser reproduzidos, fixamos o
+conjunto de dados em uma \textit{snapshot} da tabela \texttt{btc\_usdt}, congelada com data final 2026-10-01 (exclusiva). Ela contém
+os 957.853 \textit{candles} de 2017-08-17 04:00 até 2026-09-30 23:55 (UTC). Todos os resultados deste trabalho partem dela.
+O manifesto da \textit{snapshot} está no repositório do projeto e o arquivo de dados é publicado como anexo de uma versão (\textit{release})
+do repositório. Após a conclusão do trabalho, ela será disponibilizada gratuitamente. O repositório contém também os \textit{scripts}
+para gerá-la e recuperá-la, descritos a seguir.
+
+\paragraph{Geração.} O comando \texttt{export} lê a tabela \texttt{btc\_usdt} em modo somente leitura, seleciona os \textit{candles} com
+\texttt{open\_time} anterior à data final informada e os ordena por \texttt{open\_time}. A data final é obrigatória e exclusiva. 
+O resultado é um par de arquivos, \texttt{btc\_usdt\_2026-10-01.parquet} e \texttt{btc\_usdt\_2026-10-01.manifest.json}:
+
+\begin{itemize}
+  \item O arquivo Parquet guarda as 13 colunas da tabela com seus tipos originais (\textit{timestamp}, ponto flutuante, inteiro e texto), comprimidas
+  com zstd. Ocupa cerca de 46 MiB.
+  \item O manifesto é um arquivo JSON que descreve o conteúdo do Parquet: a tabela de origem, a data final, o número de linhas, o primeiro e o
+  último \texttt{open\_time}, as colunas, o formato, o momento da geração e o resumo SHA-256 do Parquet. Esse resumo muda se qualquer byte do
+  arquivo for alterado.
+\end{itemize}
+
+\paragraph{Recuperação.} O comando \texttt{restore} reconstrói a tabela a partir do Parquet, em um banco PostgreSQL local, sem acesso ao
+banco de produção. Ele executa os seguintes passos:
+
+\begin{enumerate}
+  \item Calcula o SHA-256 do Parquet e o compara com o do manifesto, antes de acessar o banco. Se forem diferentes, a operação é interrompida.
+  \item Confere se o esquema do Parquet é o esperado.
+  \item Dentro de uma única transação, cria as tabelas pelo \textit{script} \texttt{schema.sql} e carrega os dados com o comando \texttt{COPY}.
+  \item Ao final, compara o número de linhas e o período da tabela restaurada com os do manifesto. Se algum valor divergir, a transação é
+  desfeita e o banco permanece como estava.
+\end{enumerate}
+
+O \texttt{restore} só carrega os dados em uma tabela \texttt{btc\_usdt} vazia. Como ele usa a conexão definida no arquivo de configuração,
+essa regra impede que uma execução acidental altere o banco de produção. Os dois comandos são executados assim:
+
+\begin{verbatim}
+python -m database.snapshot export --ate 2026-10-01
+python -m database.snapshot restore snapshot/btc_usdt_2026-10-01.parquet
+\end{verbatim}
+
+Também é possível executar os experimentos sem o banco. O módulo de discretização e os \textit{scripts} de análise leem o Parquet
+diretamente (opção \texttt{--snapshot}), após conferir o resumo SHA-256 contra o manifesto, de modo que os dados de entrada são
+verificados a cada execução.
+
+\paragraph{Ambiente.} O código foi desenvolvido em Python 3.14, e as dependências estão fixadas no arquivo \texttt{requirements.txt}.
+O processo de treinamento do MTD é estocástico por depender de reinícios do algoritmo EM, mas as sementes são fixas: cada reinício usa uma semente
+derivada de uma semente-base, o que torna os resultados repetíveis. O repositório inclui também testes automatizados, executados com \texttt{pytest}.
 
 \section{Experimentos e cenário de testes (opcional)}
 \label{sec:experimentos}
