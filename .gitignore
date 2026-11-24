@@ -13,7 +13,6 @@ __pycache__/
 *.blg
 *.brf
 *.idx
-*.pdf
 *.toc
 *.egg-info/
 

@@ -416,6 +416,7 @@ INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/lm/ec-lmss10.tfm
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/lm/ec-lmss10.tfm
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/lm/ec-lmsso10.tfm
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/lm/ec-lmsso10.tfm
+INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/lm/ec-lmsso12.tfm
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/lm/ec-lmr10.tfm
 INPUT /usr/share/texlive/texmf-dist/tex/latex/lm/ts1lmr.fd
 INPUT /usr/share/texlive/texmf-dist/tex/latex/lm/ts1lmr.fd
@@ -452,7 +453,6 @@ INPUT ./images/HMM_Urna.png
 INPUT ./images/HMM_Urna.png
 INPUT ./images/HMM_Urna.png
 INPUT ./images/HMM_Urna.png
-INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/lm/ec-lmsso12.tfm
 INPUT ./images/Forward.png
 INPUT ./images/Forward.png
 INPUT ./images/Forward.png
@@ -503,6 +503,8 @@ INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/lm/ec-lmtt9.tfm
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/lm/ec-lmri10.tfm
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/lm/ec-lmbx10.tfm
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/lm/ec-lmri9.tfm
+INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/lm/ec-lmsso12.tfm
+INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/lm/ec-lmtti10.tfm
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/lm/rm-lmr10.tfm
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/lm/lmmi10.tfm
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/lm/lmsy10.tfm
@@ -557,4 +559,5 @@ INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsy8.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmtt10.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmtt12.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmtt9.pfb
+INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmtti10.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb

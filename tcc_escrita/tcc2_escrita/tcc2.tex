@@ -675,6 +675,7 @@ Já os retornos logarítmicos são $\ln(0{,}8) \approx -0{,}223$ e $\ln(1{,}25) 
 De modo geral, o retorno logarítmico acumulado em vários períodos é a soma dos retornos logarítmicos de cada período.
 
 \subsubsection{Estacionariedade e autocorrelação}
+\label{subsubsec:estacionariedade}
 
 Uma das suposições mais recorrentes na análise de séries temporais é a de estacionariedade, segundo a qual a série se desenvolve aleatoriamente no tempo em torno de uma média constante, refletindo um comportamento de equilíbrio e constância. Na prática, as séries temporais não costumam apresentar algum tipo de estacionariedade no seu comportamento. As séries financeiras, em particular, costumam exibir tendências, fases de alta, de baixa e de lateralização, o que afasta a propriedade de estacionariedade quando se trabalha diretamente com a série de preços \cite{morettin2018analise}.
 
@@ -1670,6 +1671,314 @@ outras máquinas é feito exclusivamente por um túnel SSH, de modo que o banco 
 \section{Detalhes da implementação}
 \label{sec:implementacao}
 
+Esta seção detalha toda a implementação desenvolvida neste trabalho.
+
+% 3.3.1
+\subsection{Lacunas e segmentos contínuos}
+\label{subsec:lacunas}
+Como explicado na coleta de dados, nossa fonte, a API da Binance, pode apresentar perda de dados. Para garantir a 
+reprodutibilidade dos experimentos, fixamos um período de dados, que chamamos de \textit{snapshot} e detalhamos na 
+Seção~\ref{subsec:ambiente}. A \textit{snapshot} usada neste estudo contém os dados 
+disponíveis via API da Binance de 2017-08-17 04:00 até 2026-09-30 23:55, e as métricas observadas nesse período estão na 
+Tabela~\ref{tab:lacunas}.
+
+\begin{table}[htb]
+  \centering
+  \caption{\textit{Candles}, lacunas e segmentos da \textit{snapshot}}
+  \label{tab:lacunas}
+  \begin{tabular}{lr}
+    \toprule
+    Grandeza & Valor \\
+    \midrule
+    \textit{Candles} na \textit{snapshot} & 957.853 \\
+    Lacunas & 34 \\
+    \textit{Candles} faltantes & 1.715 \\
+    Segmentos contínuos & 35 \\
+    \bottomrule
+  \end{tabular}
+  \legend{Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+\begin{itemize}
+\item \textit{Candle}: registro de um intervalo de 5 minutos.
+\item \textit{Lacuna}: ausência de pelo menos um \textit{candle} entre um horário de captura e o próximo.
+\item \textit{Segmento}: sequência contínua de capturas, delimitada por lacunas.
+\end{itemize}
+
+As lacunas e os segmentos são fundamentais para uma discretização correta, pois ignorar as lacunas levaria a tratar retornos 
+de intervalos superiores a 5 minutos como se fossem retornos de 5 minutos. Por exemplo: imagine que a API da Binance tenha 
+ficado fora do ar das 10:30 às 11:30 UTC. Se a captura das 10:30 registrou o valor de fechamento 61.130.48USD\$ e a das 11:30, já com a API de volta, 
+registrou o valor 61.131.42USD\$, não é correto calcular o retorno entre esses dois valores na discretização, pois o retorno de 10:30 para 
+11:30 não é válido. Nesse caso, há uma lacuna das 10:35 às 11:25 e, portanto, dois segmentos nesse dia.
+
+% 3.3.2 
+\subsection{Retorno e Limiares}
+\label{subsec:retorno}
+
+Em nossa discretização, calculamos o retorno logarítmico (Equação~\ref{retorno_logaritmico}) sobre a lista de \textit{candles}, 
+comparando sempre o \textit{candle} atual com o anterior. Assim, o primeiro \textit{candle} de cada segmento não gera retorno, 
+por não possuir um \textit{candle} anterior. O retorno só é calculado entre \textit{candles} consecutivos. Portanto, um retorno 
+que atravessa dois segmentos, não é gerado (Seção~\ref{subsec:lacunas}).
+
+Categorizamos os retornos pela Equação~\ref{discretizacao_eq}, com corte $s/k$, em que $k$ é um parâmetro inteiro. 
+Nosso principal limiar é $s/3$. Notamos, em um de nossos trabalhos de referência \cite{ARAUJO}, uma lacuna: o uso de um único 
+limiar para a discretização em três símbolos. Para suprir essa lacuna, empregamos neste trabalho diferentes limiares, o que 
+permite comparar o desempenho dos modelos em cada discretização.
+
+A Tabela~\ref{tab:distribuicao} 
+apresenta a distribuição dos símbolos nos dois modos de discretização (Seção~\ref{subsec:discretizacao}). 
+Observa-se nela que o parâmetro $k$ controla a largura da faixa do símbolo 0. Quanto maior o $k$, mais estreita é a faixa e 
+menor é a proporção de símbolos 0. No modo \textit{Blocks}, por exemplo, com $k = 3$ temos uma proporção considerável de símbolos 
+0, cerca de 42\%, e essa proporção diminui à medida que $k$ aumenta.
+
+\begin{table}[htb]
+  \centering
+  \caption{Distribuição percentual dos símbolos, em \%, por modo de discretização e limiar}
+  \label{tab:distribuicao}
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{llrccc@{\hspace{1.5em}}ccc@{\hspace{1.5em}}ccc}
+    \toprule
+    \multirow{2}{*}{Modo} & \multirow{2}{*}{Limiar} & \multirow{2}{*}{Símbolos} & \multicolumn{3}{c}{Geral} & \multicolumn{3}{c}{Treino} & \multicolumn{3}{c}{Teste} \\
+    \cmidrule(lr){4-6} \cmidrule(lr){7-9} \cmidrule(lr){10-12}
+     &  &  & $-1$ & $0$ & $+1$ & $-1$ & $0$ & $+1$ & $-1$ & $0$ & $+1$ \\
+    \midrule
+    \textit{Blocks} & $s/3$ & 953.547 & 28,77 & 42,41 & 28,82 & 28,78 & 42,33 & 28,89 & 28,57 & 43,83 & 27,61 \\
+    \textit{Blocks} & $s/4$ & 953.547 & 33,21 & 33,51 & 33,28 & 33,23 & 33,41 & 33,36 & 32,84 & 35,36 & 31,80 \\
+    \textit{Blocks} & $s/5$ & 953.547 & 36,15 & 27,64 & 36,22 & 36,17 & 27,53 & 36,29 & 35,67 & 29,56 & 34,77 \\
+    \midrule
+    \textit{Global} & $s/3$ & 957.818 & 23,98 & 51,87 & 24,15 & 24,39 & 51,02 & 24,58 & 16,18 & 67,96 & 15,85 \\
+    \textit{Global} & $s/4$ & 957.818 & 28,86 & 42,15 & 28,98 & 29,25 & 41,35 & 29,41 & 21,62 & 57,45 & 20,94 \\
+    \textit{Global} & $s/5$ & 957.818 & 32,27 & 35,36 & 32,37 & 32,62 & 34,61 & 32,76 & 25,59 & 49,59 & 24,82 \\
+    \bottomrule
+  \end{tabular}%
+  }
+  \legend{Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+% 3.3.3
+\subsection{Modos de discretização: \textit{Global} e \textit{Blocks}}
+\label{subsec:discretizacao}
+
+Neste estudo decidimos usar dois modos de discretização. No modo \textit{Global}, a média e o desvio padrão $s$ são calculados 
+uma única vez, sobre todos os dados de treinamento, e usados na discretização de toda a série (Seção~\ref{subsec:retorno}).
+
+O modo \textit{Blocks} parte da ideia de que a série do Bitcoin muda muito com o tempo e, portanto, não é estacionária (Seção~\ref{subsubsec:estacionariedade}), sendo motivado por trabalhos de 
+normalização adaptativa \cite{URETTINI2024}. Nele, os dados são agrupados em blocos consecutivos de $n$ meses e a média e o desvio padrão são calculados 
+para cada bloco. Os retornos de um bloco são classificados com as estatísticas do bloco anterior, de modo que nenhum símbolo é 
+classificado com informação posterior a ele. Em nossos experimentos principais usamos $n = 1$, e também variamos $n$ em 2, 3, 6 
+e 12 meses. A escolha de $n$ é um compromisso: blocos longos sofrem de não estacionariedade interna, e blocos curtos produzem 
+estimativas ruidosas \cite{URETTINI2024}.
+
+O modo \textit{Blocks} tem duas consequências. A primeira é que o primeiro bloco serve apenas para estimar as estatísticas do bloco 
+seguinte e não gera símbolos. Com $n = 1$ perdemos o primeiro mês (agosto de 2017), e essa perda cresce com $n$. O conjunto de 
+treinamento passa de 905.654 símbolos, com $n = 1$, para 810.244, com $n = 12$. A segunda é que os retornos do conjunto de teste 
+não dependem exclusivamente do conjunto de treinamento, uma vez que um bloco já presente no conjunto de teste pode categorizar 
+o bloco seguinte, também presente no conjunto de teste. Isso não utiliza informação futura, apenas dados já disponíveis naquele 
+momento, e difere do modo \textit{Global}, em que o teste é discretizado exclusivamente com estatísticas do treinamento.
+
+A Tabela~\ref{tab:distribuicao} mostra 
+por que mantivemos os dois modos. No modo \textit{Global} com limiar $s/3$, a proporção de símbolos 0 passa de 51,02\% no 
+treinamento para 67,96\% no teste, porque a volatilidade do período de teste é menor que a média do treinamento. No modo 
+\textit{Blocks}, com o mesmo limiar, passa de 42,33\% para 43,83\%. Isso é coerente com a literatura de normalização adaptativa, 
+segundo a qual estatísticas estimadas no treinamento só bastam quando a série é estacionária \cite{URETTINI2024}.
+
+%3.3.4
+\subsection{Divisão treino e teste}
+\label{subsec:divisao}
+
+Para nossos experimentos seguimos a proporção de treino e teste usada por \citeonline{Nascimento2023}, onde 95\% dos dados são usados para 
+treinar os modelos, e 5\% são usados para testá-los. A divisão é cronológica, sem embaralhamento, e o corte é feito sobre os
+\textit{candles}, antes do cálculo dos retornos. O modo de discretização afeta diretamente o tamanho do conjunto de treino.
+Na Seção~\ref{subsec:discretizacao} destacamos como a discretização por blocos é feita. Uma de suas características é usar as
+estatísticas do bloco anterior para categorizar os retornos do bloco atual. Desta forma, o primeiro bloco não possui símbolos e
+serve apenas para categorizar o bloco seguinte. Por este motivo, ao aumentar o número de meses de cada bloco perdemos parte do
+conjunto de treino, enquanto o conjunto de teste permanece com o mesmo tamanho. A Tabela~\ref{tab:divisao} mostra essa proporção
+para diferentes tamanhos de bloco.
+
+\begin{table}[htb]
+  \centering
+  \caption{Proporção entre treino e teste, em número de símbolos, por modo de discretização e intervalo de atualização $n$ (idêntica para todo $k$ de 1 a 10)}
+  \label{tab:divisao}
+  \begin{tabular}{llrrrrr}
+    \toprule
+    Modo & $n$ (meses) & Treino & Teste & Total & Treino (\%) & Teste (\%) \\
+    \midrule
+    \textit{Global} & --- & 909.925 & 47.893 & 957.818 & 95,00 & 5,00 \\
+    \midrule
+    \textit{Blocks} & 1 & 905.654 & 47.893 & 953.547 & 94,98 & 5,02 \\
+    \textit{Blocks} & 2 & 897.098 & 47.893 & 944.991 & 94,93 & 5,07 \\
+    \textit{Blocks} & 3 & 888.170 & 47.893 & 936.063 & 94,88 & 5,12 \\
+    \textit{Blocks} & 6 & 861.723 & 47.893 & 909.616 & 94,73 & 5,27 \\
+    \textit{Blocks} & 12 & 810.244 & 47.893 & 858.137 & 94,42 & 5,58 \\
+    \bottomrule
+  \end{tabular}
+  \legend{Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+O modo \textit{Global}, por sua vez, não perde símbolos além dos retornos inexistentes (o primeiro \textit{candle} e as lacunas,
+Seção~\ref{subsec:lacunas}), pois todos os retornos válidos são convertidos em símbolos. Por isso a proporção de 95\% e 5\% é
+praticamente exata, já que o corte é feito sobre os \textit{candles}.
+
+%3.4.1
+\subsection{Modelos de referência}
+\label{subsec:modelos_ref}
+
+Neste trabalho chamamos de modelos de referência os seguintes modelos:
+
+\begin{itemize}
+  \item Markov de primeira ordem: uma matriz de transição simples olhando para o estado imediatamente anterior.
+  \item Modelo de persistência: o modelo de persistência escolhe sempre a mesma constante, $-1$, $0$ ou $+1$.
+  \item Modelo aleatório: atribui probabilidade $1/3$ a cada símbolo, independentemente do estado anterior.
+\end{itemize}
+
+Em nossos experimentos usamos principalmente o modelo de persistência para comparação com os modelos-alvo do trabalho. O modelo de persistência
+é usado na comparação com a sua melhor constante. Por exemplo, suponha que, ao prever apenas a direção do movimento, o modelo que
+escolhe sempre $+1$ (o preço sempre sobe) atinja um acerto de 46,2\%, enquanto o que escolhe sempre $-1$ (o preço sempre cai)
+atinja 50,7\%. Neste caso, usaremos como referência a constante de maior acerto.
+
+Em nossos relatórios buscamos responder duas perguntas:
+
+\begin{enumerate}
+  \item Haverá uma movimentação significante no mercado? 
+  \item Se houver uma movimentação significante, qual o sinal dela?
+\end{enumerate}
+
+Movimentações significantes são todas as movimentações que ficam acima ou abaixo do nosso limiar empregado na discretização. O modelo de persistência é muito 
+utilizado em nossos experimentos para ajudar a comparar nossos modelos-alvo na segunda pergunta. As perguntas respondidas e os resultados dos experimentos serão 
+detalhados na Seção~\ref{sec:resultados}.
+
+%3.4.2
+\subsection{MTD}
+\label{subsec:mtd_metodologia}
+
+Implementamos o MTD apresentado na Seção~\ref{sec:referencial} na classe \texttt{MTD} (arquivo \texttt{mtd.py}, em \texttt{src/models/mtd}), para o alfabeto
+de $m = 3$ símbolos $\{-1, 0, +1\}$ e ordem $l$ configurável. Nesta subseção descrevemos o modelo como implementado, o algoritmo de estimação, a escolha da
+ordem e, por fim, os \textit{scripts} de experimento e o relatório que eles produzem.
+
+\subsubsection{Parametrização}
+
+Na implementação, a matriz $Q$ é armazenada com linhas somando 1, isto é, $q_{ij}$ é a probabilidade de o símbolo $j$ ocorrer quando o símbolo $i$
+ocupa a posição de um dos lags. Essa convenção é a transposta da adotada por \citeonline{RAFTERY1985}, e o modelo fica:
+
+\begin{equation}
+    P[X_t = j \mid X_{t-1} = i_1, \dots, X_{t-l} = i_l] = \sum_{g=1}^{l} \lambda_g \, q_{i_g j},
+    \qquad \lambda_g \geq 0, \quad \sum_{g=1}^{l} \lambda_g = 1
+\end{equation}
+
+Há uma única matriz $Q$ compartilhada por todos os lags, e o vetor $\lambda$ pondera a contribuição de cada um. O número de parâmetros livres é
+$m(m-1) + (l-1)$, ou seja, $l + 5$ para três símbolos, contra $3^l \cdot 2$ da cadeia de Markov completa de ordem $l$. Com $l = 1$ o modelo coincide com a
+cadeia de primeira ordem.
+
+\subsubsection{Estimação por EM}
+
+A verossimilhança do MTD tem uma soma dentro do logaritmo, o que impede a maximização direta em $Q$ e $\lambda$. Estimamos os parâmetros pelo algoritmo
+\textit{Expectation-Maximization} (EM), seguindo \citeonline{LEBRE2008}, que trata o lag responsável por cada observação como uma variável latente $Z_t \in \{1, \dots, l\}$.
+Seja $N = T - l$ o número de transições da sequência de treino, pois os $l$ primeiros símbolos servem apenas de contexto. Em cada iteração:
+
+\begin{itemize}
+  \item \textbf{Passo E:} para cada transição, calcula-se a responsabilidade de cada lag, isto é, a probabilidade de o lag $g$ ter gerado o símbolo observado:
+  \begin{equation}
+      \gamma_t(g) = \frac{\lambda_g \, q_{x_{t-g}\, x_t}}{\sum_{g'=1}^{l} \lambda_{g'} \, q_{x_{t-g'}\, x_t}}
+  \end{equation}
+  \item \textbf{Passo M:} reestimam-se os pesos como a média das responsabilidades, $\lambda_g = \frac{1}{N}\sum_t \gamma_t(g)$, e a matriz $Q$ como a contagem
+  ponderada de pares lag-alvo, normalizada por linha:
+  \begin{equation}
+      q_{ij} = \frac{c_{ij} + \varepsilon}{\sum_{j'} c_{ij'} + m\varepsilon}, \qquad
+      c_{ij} = \sum_{t} \sum_{g} \gamma_t(g) \, \mathbf{1}[x_{t-g} = i,\, x_t = j]
+  \end{equation}
+\end{itemize}
+
+O termo $\varepsilon = 10^{-10}$ funciona como uma pseudocontagem e evita uma linha de $Q$ nula quando um símbolo nunca aparece como lag e mantém as
+probabilidades positivas, de modo que o logaritmo da verossimilhança permanece finito. O processo para quando a variação relativa da log-verossimilhança fica abaixo de
+$10^{-8}$ ou após 1000 iterações. Como o EM nunca piora a verossimilhança, a implementação a verifica a cada passo: se houver queda além da tolerância, ela emite um
+aviso e devolve os parâmetros da iteração anterior.
+
+O MTD e o HMM são, portanto, estimados pela mesma família de algoritmos, o EM, que no HMM corresponde ao \textit{Baum-Welch}~\cite{Rabiner1989}. As implementações são
+independentes, mas seguem o mesmo padrão. Ambas usam o critério de parada pela variação relativa da verossimilhança e paralelizam o passo E, dividindo as transições
+em blocos com acumuladores locais, somados ao final, com a biblioteca \textit{Numba}.
+
+\subsubsection{Inicialização e reinícios}
+
+O EM converge para um máximo local, que depende do ponto de partida. Por isso cada ordem é ajustada com vários reinícios e mantemos o de maior
+log-verossimilhança. O reinício 0 é determinístico, com $\lambda$ uniforme e $Q$ igual à matriz de transição empírica da cadeia de primeira ordem. Nos demais, $\lambda$
+e cada linha de $Q$ são sorteados de uma distribuição de Dirichlet (concentração 5). Cada reinício usa uma semente derivada de uma semente-base, o que torna o
+resultado repetível. Nos experimentos finais usamos 10 reinícios por ordem e semente-base 0. Para avaliar a estabilidade do ajuste, consideramos que um reinício
+chegou à mesma solução do melhor quando sua log-verossimilhança fica a menos de 1 \textit{nat} de distância dele.
+
+\subsubsection{Verossimilhança, predição e seleção da ordem}
+
+A log-verossimilhança de uma sequência é a soma, sobre as $N$ transições, do logaritmo da probabilidade atribuída ao símbolo observado. Para a predição de um passo,
+o método \texttt{predict\_proba} devolve, para cada posição, a distribuição do símbolo seguinte, calculada a partir dos lags disponíveis. Nas primeiras $l - 1$ posições faltam
+lags, e a implementação usa apenas os existentes, com os pesos renormalizados. Essas posições não entram na avaliação.
+
+Ajustamos o MTD para cada ordem de 1 a 10 e escolhemos a ordem pelo BIC, como em \citeonline{RAFTERY1985}. Para que o critério seja comparável entre ordens, todas são avaliadas sobre
+as mesmas $n$ transições de treino, as últimas $N - l_{max}$, com $l_{max} = 10$. O BIC é usado apenas como critério de seleção entre as ordens do MTD, e o desempenho do modelo
+escolhido é avaliado no conjunto de teste, em comparação com os modelos de referência (Seção~\ref{subsec:modelos_ref}).
+
+\subsubsection{Experimentos e relatórios}
+\label{subsubsec:relatorios}
+
+Os experimentos são executados pelo \textit{script} \texttt{src/experiments/mtd\_analysis.py}, que reúne, em uma única execução, o ajuste do MTD, a comparação com os
+modelos de referência e o HMM, o cálculo das métricas e a geração do relatório. As funções de divisão treino e teste, de acerto de direção e de contagem de lacunas
+vêm do \textit{script} \texttt{mtd\_report.py}, uma versão mais enxuta do relatório, compartilhada por ambos.
+
+\paragraph{Entrada e parâmetros.} A entrada é a \textit{snapshot} em Parquet (Seção~\ref{subsec:ambiente}), cujo resumo SHA-256 é conferido contra o manifesto
+antes de qualquer cálculo. Os parâmetros do \textit{script} são:
+
+\begin{itemize}
+  \item \texttt{-{}-snapshot}: caminho do arquivo Parquet (obrigatório).
+  \item \texttt{-{}-max-order}: maior ordem ajustada (padrão: 10).
+  \item \texttt{-{}-restarts} e \texttt{-{}-seed}: número de reinícios por ordem (padrão: 10) e semente-base (padrão: 0).
+  \item \texttt{-{}-mode}: modos de discretização, \textit{Blocks}, \textit{Global} ou ambos (Seção~\ref{subsec:discretizacao}).
+  \item \texttt{-{}-k}: lista de limiares $s/k$ (padrão: apenas $k = 3$).
+  \item \texttt{-{}-interval}: lista de tamanhos de bloco, em meses (padrão: 1). Vale apenas para o modo \textit{Blocks}; o modo \textit{Global} o ignora.
+  \item \texttt{-{}-hmm-dir}: pasta com os resultados do treinamento do HMM, para incluí-lo na comparação.
+  \item \texttt{-{}-cache}: pasta em que cada MTD ajustado é guardado.
+  \item \texttt{-{}-reuse}: relatórios anteriores, em JSON, cujas configurações são copiadas em vez de recalculadas.
+  \item \texttt{-{}-suffix}: sufixo do nome dos arquivos de saída, para que um novo relatório não sobrescreva um existente.
+  \item \texttt{-{}-detail}: configurações que recebem uma seção detalhada no relatório (padrão: \textit{Blocks} com $k = 3$ e 1 mês, e \textit{Global} com $k = 3$).
+  \item \texttt{-{}-output}: pasta de saída (padrão: \texttt{relatorios/}).
+\end{itemize}
+
+Uma execução percorre o produto cartesiano das listas de modos, de $k$ e de tamanhos de bloco, e cada combinação é uma configuração de discretização. No relatório final,
+usamos $k$ de 1 a 10 e blocos de 1, 2, 3, 6 e 12 meses, além do modo \textit{Global}, o que resulta em $10 \times (5 + 1) = 60$ configurações. Em cada uma, o MTD é ajustado nas dez ordens, o que
+leva a 600 ajustes.
+
+\paragraph{Peculiaridades.} Algumas decisões do \textit{script} afetam a leitura dos resultados:
+
+\begin{itemize}
+  \item \textbf{Mesmas transições para todos os modelos.} O treino usa as últimas $N - l_{max}$ transições e o teste usa todas as posições do conjunto de teste, com o
+  contexto vindo do fim do treino. Assim, as verossimilhanças e o BIC de modelos de ordens diferentes são comparáveis. Entre configurações diferentes, não são, pois cada uma tem outra
+  distribuição de símbolos.
+  \item \textbf{Modelos de referência.} Em cada configuração, o MTD é comparado ao modelo aleatório, à frequência marginal do treino, ao modelo de persistência e à cadeia de primeira ordem,
+  ajustados no mesmo treino.  
+  \item \textbf{Lacunas.} Os símbolos pertencem a segmentos contínuos (Seção~\ref{subsec:lacunas}), mas o contexto de uma transição próxima ao início de um segmento pode atravessar a lacuna. O
+  relatório conta essas transições e compara a log-verossimilhança com e sem elas.
+  \item \textbf{Cache e reaproveitamento.} Cada MTD ajustado é guardado em JSON, com uma chave que inclui o modo, o $k$, o tamanho do bloco, o resumo SHA-256 da \textit{snapshot}, o tamanho do treino,
+  a ordem, o número de reinícios e a semente. Uma nova execução pula o EM do que já foi calculado. O \texttt{-{}-reuse} só copia configurações de relatórios que usaram a mesma \textit{snapshot} e os mesmos parâmetros
+  do MTD, o que permitiu ampliar os experimentos em etapas, sem refazer os ajustes anteriores.
+\end{itemize}
+
+\paragraph{Métricas.} Para cada modelo, no treino e no teste, o \textit{script} calcula a log-verossimilhança por símbolo, o BIC, a acurácia, a precisão, o \textit{recall} e o \textit{F1-score} por classe,
+a matriz de confusão e o acerto de direção. A decisão usa o $\arg\max$ da distribuição prevista. O acerto de direção considera apenas os \textit{candles} em que o símbolo real é $-1$ ou $+1$ e
+escolhe entre eles a classe de maior probabilidade, ignorando o 0, com intervalo de confiança de Wilson de 95\%. A direção é comparada à melhor constante (sempre $-1$ ou sempre $+1$), como descrito na Seção~\ref{subsec:modelos_ref}.
+
+\paragraph{Produto final.} A saída da execução é um par de arquivos em \texttt{relatorios/}, com nome \texttt{mtd\_<data da \textit{snapshot}>\_completa<sufixo>}: um relatório em Markdown (\texttt{.md}),
+legível, e um arquivo JSON (\texttt{.json}) com todos os números. Os valores citados neste trabalho saem do JSON, e o Markdown é gerado a partir dele. O relatório em Markdown contém:
+
+\begin{itemize}
+  \item \textbf{Fonte e parâmetros:} o resumo SHA-256 e o número de \textit{candles} da \textit{snapshot}, os parâmetros do MTD e as convenções de avaliação.
+  \item \textbf{Matrizes de resumo:} uma matriz por métrica, com uma linha por $k$ e uma coluna por modo e tamanho de bloco. Cada célula é uma configuração e mostra o MTD da ordem de menor BIC.
+  As métricas são: proporção de zeros no treino e no teste, log-verossimilhança por símbolo no teste, ganho sobre o modelo iid, acurácia em relação a ``sempre 0'', $F1$ médio das classes $-1$ e $+1$,
+  acerto de direção e margem da direção sobre a melhor constante.
+  \item \textbf{Verificações:} resumo do ajuste em todas as configurações, com a estabilidade dos reinícios, a ordem de menor BIC e o efeito das lacunas.
+  \item \textbf{Tabela completa:} uma linha por configuração, com os números exatos.
+  \item \textbf{Seções detalhadas:} só para as configurações indicadas em \texttt{-{}-detail}. Cada uma traz (1) a log-verossimilhança e o BIC dos modelos de referência, do MTD em cada ordem e do HMM;
+  (2) a previsão de um passo no teste, com acurácia, precisão, \textit{recall}, $F1$, matriz de confusão e direção; (3) a estrutura do MTD, com $\lambda$, $Q$, a distribuição estacionária e os tempos de memória
+  derivados dos autovalores de $Q$; (4) a estabilidade dos reinícios; (5) o efeito das lacunas no treino. As demais configurações constam apenas no JSON.
+\end{itemize}
+
+%3.4.3
 \subsection{Modelo Oculto de Markov em Numba}
 \label{sec:hmm_numba}
 
@@ -1725,6 +2034,7 @@ Além disso, o Numba não verifica se os índices acessados estão dentro dos li
 classe valida as sequências recebidas antes de repassá-las aos \textit{kernels}. A validação da implementação contra o 
 cálculo por força bruta e contra uma biblioteca de referência é descrita na Seção \ref{sec:garantia_qualidade}.
 
+%3.4.4
 \subsection{Garantia de qualidade}
 \label{sec:garantia_qualidade}
 
@@ -1841,6 +2151,58 @@ ganho obtido justifica a maior complexidade.
 Além dos modelos previstos nas hipóteses, os resultados também são comparados com o modelo de frequências e com a cadeia de primeira ordem. 
 Essas referências são mais exigentes e permitem verificar se uma eventual vantagem sobre o modelo aleatório e o de persistência indica, de fato, 
 capacidade de prever a direção do próximo movimento.
+
+%3.5.4
+\subsection{Ambiente e reprodutibilidade}
+\label{subsec:ambiente}
+
+A coleta dos dados continua em andamento, e a API da Binance pode revisar ou perder registros (Seção~\ref{subsec:lacunas}). Por isso,
+uma consulta feita em outra data produziria uma série diferente. Para que os experimentos possam ser reproduzidos, fixamos o
+conjunto de dados em uma \textit{snapshot} da tabela \texttt{btc\_usdt}, congelada com data final 2026-10-01 (exclusiva). Ela contém
+os 957.853 \textit{candles} de 2017-08-17 04:00 até 2026-09-30 23:55 (UTC). Todos os resultados deste trabalho partem dela.
+O manifesto da \textit{snapshot} está no repositório do projeto e o arquivo de dados é publicado como anexo de uma versão (\textit{release})
+do repositório. Após a conclusão do trabalho, ela será disponibilizada gratuitamente. O repositório contém também os \textit{scripts}
+para gerá-la e recuperá-la, descritos a seguir.
+
+\paragraph{Geração.} O comando \texttt{export} lê a tabela \texttt{btc\_usdt} em modo somente leitura, seleciona os \textit{candles} com
+\texttt{open\_time} anterior à data final informada e os ordena por \texttt{open\_time}. A data final é obrigatória e exclusiva. 
+O resultado é um par de arquivos, \texttt{btc\_usdt\_2026-10-01.parquet} e \texttt{btc\_usdt\_2026-10-01.manifest.json}:
+
+\begin{itemize}
+  \item O arquivo Parquet guarda as 13 colunas da tabela com seus tipos originais (\textit{timestamp}, ponto flutuante, inteiro e texto), comprimidas
+  com zstd. Ocupa cerca de 46 MiB.
+  \item O manifesto é um arquivo JSON que descreve o conteúdo do Parquet: a tabela de origem, a data final, o número de linhas, o primeiro e o
+  último \texttt{open\_time}, as colunas, o formato, o momento da geração e o resumo SHA-256 do Parquet. Esse resumo muda se qualquer byte do
+  arquivo for alterado.
+\end{itemize}
+
+\paragraph{Recuperação.} O comando \texttt{restore} reconstrói a tabela a partir do Parquet, em um banco PostgreSQL local, sem acesso ao
+banco de produção. Ele executa os seguintes passos:
+
+\begin{enumerate}
+  \item Calcula o SHA-256 do Parquet e o compara com o do manifesto, antes de acessar o banco. Se forem diferentes, a operação é interrompida.
+  \item Confere se o esquema do Parquet é o esperado.
+  \item Dentro de uma única transação, cria as tabelas pelo \textit{script} \texttt{schema.sql} e carrega os dados com o comando \texttt{COPY}.
+  \item Ao final, compara o número de linhas e o período da tabela restaurada com os do manifesto. Se algum valor divergir, a transação é
+  desfeita e o banco permanece como estava.
+\end{enumerate}
+
+O \texttt{restore} só carrega os dados em uma tabela \texttt{btc\_usdt} vazia. Como ele usa a conexão definida no arquivo de configuração,
+essa regra impede que uma execução acidental altere o banco de produção. Os dois comandos são executados assim:
+
+\begin{verbatim}
+python -m database.snapshot export --ate 2026-10-01
+python -m database.snapshot restore snapshot/btc_usdt_2026-10-01.parquet
+\end{verbatim}
+
+Também é possível executar os experimentos sem o banco. O módulo de discretização e os \textit{scripts} de análise leem o Parquet
+diretamente (opção \texttt{-{}-snapshot}), após conferir o resumo SHA-256 contra o manifesto, de modo que os dados de entrada são
+verificados a cada execução.
+
+\paragraph{Ambiente.} O código foi desenvolvido em Python 3.14, e as dependências estão fixadas no arquivo \texttt{requirements.txt}.
+O processo de treinamento do MTD é estocástico por depender de reinícios do algoritmo EM, mas as sementes são fixas: cada reinício usa uma semente
+derivada de uma semente-base, o que torna os resultados repetíveis. O repositório inclui também testes automatizados, executados com \texttt{pytest}.
+
 
 \section{Resultados e análises}
 \label{sec:resultados}
