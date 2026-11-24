@@ -498,6 +498,7 @@ INPUT /usr/share/texmf-dist/fonts/tfm/public/lm/ec-lmr10.tfm
 INPUT /usr/share/texmf-dist/fonts/tfm/public/lm/ec-lmr9.tfm
 INPUT /usr/share/texmf-dist/fonts/tfm/public/lm/ec-lmbx9.tfm
 INPUT /usr/share/texmf-dist/fonts/tfm/public/lm/ec-lmsso12.tfm
+INPUT /usr/share/texmf-dist/fonts/tfm/public/lm/ec-lmtti10.tfm
 INPUT build/tcc2.bbl
 INPUT build/tcc2.bbl
 INPUT build/tcc2.bbl
@@ -540,4 +541,5 @@ INPUT /usr/share/texmf-dist/fonts/type1/public/lm/lmsy10.pfb
 INPUT /usr/share/texmf-dist/fonts/type1/public/lm/lmsy6.pfb
 INPUT /usr/share/texmf-dist/fonts/type1/public/lm/lmsy8.pfb
 INPUT /usr/share/texmf-dist/fonts/type1/public/lm/lmtt12.pfb
+INPUT /usr/share/texmf-dist/fonts/type1/public/lm/lmtti10.pfb
 INPUT /usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb

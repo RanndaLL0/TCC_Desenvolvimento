@@ -1,20 +1,20 @@
 # Fdb version 4
-["bibtex build/tcc2"] 1795406177.59374 "build/tcc2.aux" "build/tcc2.bbl" "build/tcc2" 1795406181.23315 0
-  "./bibliografia_tcc2.bib" 1795404859.8764 29738 2b6a7387fe318ed95eed7685186edcfa ""
+["bibtex build/tcc2"] 1795543159.51033 "build/tcc2.aux" "build/tcc2.bbl" "build/tcc2" 1795543161.5812 0
+  "./bibliografia_tcc2.bib" 1795541248.60391 30008 bf867f8ffcf66372ac8f0bcd7fb18143 ""
   "/usr/share/texmf-dist/bibtex/bib/abntex2/abntex2-options.bib" 1775415801 5396 4eb260dac60f150ae608d45252853090 ""
   "/usr/share/texmf-dist/bibtex/bst/abntex2/abntex2-alf.bst" 1775415801 60064 0819ac8568f9a482510a46e3a8a6f605 ""
-  "build/tcc2.aux" 1795406180.79506 67026 9e20830c86e195186c0114bb46614dd5 "pdflatex"
+  "build/tcc2.aux" 1795543161.38353 73437 93f1716cdc8ad0d473655beda4181030 "pdflatex"
   (generated)
   "build/tcc2.bbl"
   "build/tcc2.blg"
   (rewritten before read)
-["makeindex build/tcc2.idx"] 1795391280.08675 "build/tcc2.idx" "build/tcc2.ind" "build/tcc2" 1795406181.23286 0
-  "build/tcc2.idx" 1795406178.744 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+["makeindex build/tcc2.idx"] 1795391280.08675 "build/tcc2.idx" "build/tcc2.ind" "build/tcc2" 1795543161.58108 0
+  "build/tcc2.idx" 1795543160.11655 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
   (generated)
   "build/tcc2.ilg"
   "build/tcc2.ind"
   (rewritten before read)
-["pdflatex"] 1795406177.64526 "tcc2.tex" "build/tcc2.pdf" "tcc2" 1795406181.23353 0
+["pdflatex"] 1795543159.53916 "tcc2.tex" "build/tcc2.pdf" "tcc2" 1795543161.58143 0
   "/usr/share/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc" 1775415801 2375 baa924870cfb487815765f9094cf3728 ""
   "/usr/share/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc" 1775415801 3486 c7eadf5dcc57b3b2d11736679f6636ba ""
   "/usr/share/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc" 1775415801 2405 5dcf2c1b967ee25cc46c58cd52244aed ""
@@ -45,6 +45,7 @@
   "/usr/share/texmf-dist/fonts/tfm/public/lm/ec-lmsso10.tfm" 1775415801 11316 701b7748a8cc1abea04b4bcc027674ae ""
   "/usr/share/texmf-dist/fonts/tfm/public/lm/ec-lmsso12.tfm" 1775415801 11352 d9e290eeb53800a380f9d1e4c40ad6c8 ""
   "/usr/share/texmf-dist/fonts/tfm/public/lm/ec-lmtt12.tfm" 1775415801 1368 6a60e6a5e029141041d64d339b87e533 ""
+  "/usr/share/texmf-dist/fonts/tfm/public/lm/ec-lmtti10.tfm" 1775415801 1372 0dcee1a56926aed3dd9ded91b7563563 ""
   "/usr/share/texmf-dist/fonts/tfm/public/lm/lmex10.tfm" 1775415801 992 ce925c9346c7613270a79afbee98c070 ""
   "/usr/share/texmf-dist/fonts/tfm/public/lm/lmmi10.tfm" 1775415801 1528 6d36b2385e0ca062a654de6ac59cb34f ""
   "/usr/share/texmf-dist/fonts/tfm/public/lm/lmmi12.tfm" 1775415801 1524 753b192b18f2991794f9d41a8228510b ""
@@ -99,6 +100,7 @@
   "/usr/share/texmf-dist/fonts/type1/public/lm/lmsy6.pfb" 1775415801 28109 6d61305ed3d0eb794ebe36f15cf44aa0 ""
   "/usr/share/texmf-dist/fonts/type1/public/lm/lmsy8.pfb" 1775415801 27802 5c876bb2c4040caaf035d60bd74a86bd ""
   "/usr/share/texmf-dist/fonts/type1/public/lm/lmtt12.pfb" 1775415801 110323 92daea7ca7b4120bd2b54b047c93be27 ""
+  "/usr/share/texmf-dist/fonts/type1/public/lm/lmtti10.pfb" 1775415801 98822 859130196f7a6d2d1173200c66afbcff ""
   "/usr/share/texmf-dist/tex/context/base/mkii/supp-pdf.mkii" 1775415801 71627 94eb9990bed73c364d7f53f960cc8c5b ""
   "/usr/share/texmf-dist/tex/generic/babel-english/english.ldf" 1775415801 7008 9ff5fdcc865b01beca2b0fe4a46231d4 ""
   "/usr/share/texmf-dist/tex/generic/babel-portuges/brazilian.ldf" 1775415801 6096 b2165a3d4d5e10b4990e15cb0c21a9b0 ""
@@ -283,13 +285,13 @@
   "/usr/share/texmf-dist/web2c/texmf.cnf" 1775415801 43569 fd570f2fa160877d211e859f687312ba ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1792762459 325445 e037c2d0d08ad8cbac81cfa7969967b5 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1792548362 2329406 e58be143fa00234164036b631946f095 ""
-  "build/tcc2.aux" 1795406180.79506 67026 9e20830c86e195186c0114bb46614dd5 "pdflatex"
-  "build/tcc2.bbl" 1795406177.62697 10387 4bfba74fa25dee93c379ce1cc638a9a5 "bibtex build/tcc2"
-  "build/tcc2.brf" 1795406180.82306 6796 d67c31019e32da12a281efb9b3ebafe2 "pdflatex"
+  "build/tcc2.aux" 1795543161.38353 73437 93f1716cdc8ad0d473655beda4181030 "pdflatex"
+  "build/tcc2.bbl" 1795543159.53055 10693 561f7b428e0b9749e548faebfee6c66b "bibtex build/tcc2"
+  "build/tcc2.brf" 1795543161.40053 7091 d392fed2aaf3f318b1e431b942f774b7 "pdflatex"
   "build/tcc2.ind" 1795391280.098 0 d41d8cd98f00b204e9800998ecf8427e "makeindex build/tcc2.idx"
-  "build/tcc2.lof" 1795406180.82406 1462 51376df7fb8c488e60f61161eb253541 "pdflatex"
-  "build/tcc2.lot" 1795406180.82406 564 ea7a9fe7480496178a92b564e9b61570 "pdflatex"
-  "build/tcc2.toc" 1795406180.82406 8526 9f113d3b496a58de939c51e7e84085c2 "pdflatex"
+  "build/tcc2.lof" 1795543161.40053 1462 51376df7fb8c488e60f61161eb253541 "pdflatex"
+  "build/tcc2.lot" 1795543161.40053 790 d2123c3d36e57577d6589527dc86ab55 "pdflatex"
+  "build/tcc2.toc" 1795543161.40053 9701 e5cc3111ddf7b988e0fdbe8246c5097a "pdflatex"
   "images/Araujo_cinco_simbolos.png" 1792436861.34278 42432 935c7c7bb69eced2906057eb173f2fa1 ""
   "images/Araujo_tres_simbolos.png" 1792436861.34334 52693 00c648146344f165ff6052154b3cc5e0 ""
   "images/Bitcoin.png" 1792436861.34334 49924 96f26a5db2688d5e4180f8a5c4fd6f6d ""
@@ -299,7 +301,7 @@
   "images/Matriz_de_confusao.png" 1792436861.34405 13893 2321996870989a6836ba91b7f9e14e80 ""
   "images/Timestamp.png" 1792436861.34405 16982 056aca09cadb7cce2c5ac91e2406d089 ""
   "images/grafico_kblocos.png" 1792436861.34405 54023 fa8707e1bc429cfc9390fa4b4af4c26b ""
-  "tcc2.tex" 1795406172.83303 116392 8ffd79dea56b33a6637806666f6e8b6d ""
+  "tcc2.tex" 1795543155.73661 135855 91dedba37cc30dee9e93375ff5cc9151 ""
   (generated)
   "build/tcc2.aux"
   "build/tcc2.brf"

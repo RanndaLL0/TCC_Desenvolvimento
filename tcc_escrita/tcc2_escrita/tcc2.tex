@@ -1639,6 +1639,133 @@ detalhados na Seção~\ref{sec:resultados}.
 \subsection{MTD}
 \label{subsec:mtd_metodologia}
 
+Implementamos o MTD apresentado na Seção~\ref{sec:referencial} na classe \texttt{MTD} (arquivo \texttt{mtd.py}, em \texttt{src/models/mtd}), para o alfabeto
+de $m = 3$ símbolos $\{-1, 0, +1\}$ e ordem $l$ configurável. Nesta subseção descrevemos o modelo como implementado, o algoritmo de estimação, a escolha da
+ordem e, por fim, os \textit{scripts} de experimento e o relatório que eles produzem.
+
+\subsubsection{Parametrização}
+
+Na implementação, a matriz $Q$ é armazenada com linhas somando 1, isto é, $q_{ij}$ é a probabilidade de o símbolo $j$ ocorrer quando o símbolo $i$
+ocupa a posição de um dos lags. Essa convenção é a transposta da adotada por \citeonline{RAFTERY1985}, e o modelo fica:
+
+\begin{equation}
+    P[X_t = j \mid X_{t-1} = i_1, \dots, X_{t-l} = i_l] = \sum_{g=1}^{l} \lambda_g \, q_{i_g j},
+    \qquad \lambda_g \geq 0, \quad \sum_{g=1}^{l} \lambda_g = 1
+\end{equation}
+
+Há uma única matriz $Q$ compartilhada por todos os lags, e o vetor $\lambda$ pondera a contribuição de cada um. O número de parâmetros livres é
+$m(m-1) + (l-1)$, ou seja, $l + 5$ para três símbolos, contra $3^l \cdot 2$ da cadeia de Markov completa de ordem $l$. Com $l = 1$ o modelo coincide com a
+cadeia de primeira ordem.
+
+\subsubsection{Estimação por EM}
+
+A verossimilhança do MTD tem uma soma dentro do logaritmo, o que impede a maximização direta em $Q$ e $\lambda$. Estimamos os parâmetros pelo algoritmo
+\textit{Expectation-Maximization} (EM), seguindo \citeonline{LEBRE2008}, que trata o lag responsável por cada observação como uma variável latente $Z_t \in \{1, \dots, l\}$.
+Seja $N = T - l$ o número de transições da sequência de treino, pois os $l$ primeiros símbolos servem apenas de contexto. Em cada iteração:
+
+\begin{itemize}
+  \item \textbf{Passo E:} para cada transição, calcula-se a responsabilidade de cada lag, isto é, a probabilidade de o lag $g$ ter gerado o símbolo observado:
+  \begin{equation}
+      \gamma_t(g) = \frac{\lambda_g \, q_{x_{t-g}\, x_t}}{\sum_{g'=1}^{l} \lambda_{g'} \, q_{x_{t-g'}\, x_t}}
+  \end{equation}
+  \item \textbf{Passo M:} reestimam-se os pesos como a média das responsabilidades, $\lambda_g = \frac{1}{N}\sum_t \gamma_t(g)$, e a matriz $Q$ como a contagem
+  ponderada de pares lag-alvo, normalizada por linha:
+  \begin{equation}
+      q_{ij} = \frac{c_{ij} + \varepsilon}{\sum_{j'} c_{ij'} + m\varepsilon}, \qquad
+      c_{ij} = \sum_{t} \sum_{g} \gamma_t(g) \, \mathbf{1}[x_{t-g} = i,\, x_t = j]
+  \end{equation}
+\end{itemize}
+
+O termo $\varepsilon = 10^{-10}$ funciona como uma pseudocontagem e evita uma linha de $Q$ nula quando um símbolo nunca aparece como lag e mantém as
+probabilidades positivas, de modo que o logaritmo da verossimilhança permanece finito. O processo para quando a variação relativa da log-verossimilhança fica abaixo de
+$10^{-8}$ ou após 1000 iterações. Como o EM nunca piora a verossimilhança, a implementação a verifica a cada passo: se houver queda além da tolerância, ela emite um
+aviso e devolve os parâmetros da iteração anterior.
+
+O MTD e o HMM são, portanto, estimados pela mesma família de algoritmos, o EM, que no HMM corresponde ao \textit{Baum-Welch}~\cite{Rabiner1989}. As implementações são
+independentes, mas seguem o mesmo padrão. Ambas usam o critério de parada pela variação relativa da verossimilhança e paralelizam o passo E, dividindo as transições
+em blocos com acumuladores locais, somados ao final, com a biblioteca \textit{Numba}.
+
+\subsubsection{Inicialização e reinícios}
+
+O EM converge para um máximo local, que depende do ponto de partida. Por isso cada ordem é ajustada com vários reinícios e mantemos o de maior
+log-verossimilhança. O reinício 0 é determinístico, com $\lambda$ uniforme e $Q$ igual à matriz de transição empírica da cadeia de primeira ordem. Nos demais, $\lambda$
+e cada linha de $Q$ são sorteados de uma distribuição de Dirichlet (concentração 5). Cada reinício usa uma semente derivada de uma semente-base, o que torna o
+resultado repetível. Nos experimentos finais usamos 10 reinícios por ordem e semente-base 0. Para avaliar a estabilidade do ajuste, consideramos que um reinício
+chegou à mesma solução do melhor quando sua log-verossimilhança fica a menos de 1 \textit{nat} de distância dele.
+
+\subsubsection{Verossimilhança, predição e seleção da ordem}
+
+A log-verossimilhança de uma sequência é a soma, sobre as $N$ transições, do logaritmo da probabilidade atribuída ao símbolo observado. Para a predição de um passo,
+o método \texttt{predict\_proba} devolve, para cada posição, a distribuição do símbolo seguinte, calculada a partir dos lags disponíveis. Nas primeiras $l - 1$ posições faltam
+lags, e a implementação usa apenas os existentes, com os pesos renormalizados. Essas posições não entram na avaliação.
+
+Ajustamos o MTD para cada ordem de 1 a 10 e escolhemos a ordem pelo BIC, como em \citeonline{RAFTERY1985}. Para que o critério seja comparável entre ordens, todas são avaliadas sobre
+as mesmas $n$ transições de treino, as últimas $N - l_{max}$, com $l_{max} = 10$. O BIC é usado apenas como critério de seleção entre as ordens do MTD, e o desempenho do modelo
+escolhido é avaliado no conjunto de teste, em comparação com os modelos de referência (Seção~\ref{subsec:modelos_ref}).
+
+\subsubsection{Experimentos e relatórios}
+\label{subsubsec:relatorios}
+
+Os experimentos são executados pelo \textit{script} \texttt{src/experiments/mtd\_analysis.py}, que reúne, em uma única execução, o ajuste do MTD, a comparação com os
+modelos de referência e o HMM, o cálculo das métricas e a geração do relatório. As funções de divisão treino e teste, de acerto de direção e de contagem de lacunas
+vêm do \textit{script} \texttt{mtd\_report.py}, uma versão mais enxuta do relatório, compartilhada por ambos.
+
+\paragraph{Entrada e parâmetros.} A entrada é a \textit{snapshot} em Parquet (Seção~\ref{subsec:ambiente}), cujo resumo SHA-256 é conferido contra o manifesto
+antes de qualquer cálculo. Os parâmetros do \textit{script} são:
+
+\begin{itemize}
+  \item \texttt{-{}-snapshot}: caminho do arquivo Parquet (obrigatório).
+  \item \texttt{-{}-max-order}: maior ordem ajustada (padrão: 10).
+  \item \texttt{-{}-restarts} e \texttt{-{}-seed}: número de reinícios por ordem (padrão: 10) e semente-base (padrão: 0).
+  \item \texttt{-{}-mode}: modos de discretização, \textit{Blocks}, \textit{Global} ou ambos (Seção~\ref{subsec:discretizacao}).
+  \item \texttt{-{}-k}: lista de limiares $s/k$ (padrão: apenas $k = 3$).
+  \item \texttt{-{}-interval}: lista de tamanhos de bloco, em meses (padrão: 1). Vale apenas para o modo \textit{Blocks}; o modo \textit{Global} o ignora.
+  \item \texttt{-{}-hmm-dir}: pasta com os resultados do treinamento do HMM, para incluí-lo na comparação.
+  \item \texttt{-{}-cache}: pasta em que cada MTD ajustado é guardado.
+  \item \texttt{-{}-reuse}: relatórios anteriores, em JSON, cujas configurações são copiadas em vez de recalculadas.
+  \item \texttt{-{}-suffix}: sufixo do nome dos arquivos de saída, para que um novo relatório não sobrescreva um existente.
+  \item \texttt{-{}-detail}: configurações que recebem uma seção detalhada no relatório (padrão: \textit{Blocks} com $k = 3$ e 1 mês, e \textit{Global} com $k = 3$).
+  \item \texttt{-{}-output}: pasta de saída (padrão: \texttt{relatorios/}).
+\end{itemize}
+
+Uma execução percorre o produto cartesiano das listas de modos, de $k$ e de tamanhos de bloco, e cada combinação é uma configuração de discretização. No relatório final,
+usamos $k$ de 1 a 10 e blocos de 1, 2, 3, 6 e 12 meses, além do modo \textit{Global}, o que resulta em $10 \times (5 + 1) = 60$ configurações. Em cada uma, o MTD é ajustado nas dez ordens, o que
+leva a 600 ajustes.
+
+\paragraph{Peculiaridades.} Algumas decisões do \textit{script} afetam a leitura dos resultados:
+
+\begin{itemize}
+  \item \textbf{Mesmas transições para todos os modelos.} O treino usa as últimas $N - l_{max}$ transições e o teste usa todas as posições do conjunto de teste, com o
+  contexto vindo do fim do treino. Assim, as verossimilhanças e o BIC de modelos de ordens diferentes são comparáveis. Entre configurações diferentes, não são, pois cada uma tem outra
+  distribuição de símbolos.
+  \item \textbf{Modelos de referência.} Em cada configuração, o MTD é comparado ao modelo aleatório, à frequência marginal do treino, ao modelo de persistência e à cadeia de primeira ordem,
+  ajustados no mesmo treino.  
+  \item \textbf{Lacunas.} Os símbolos pertencem a segmentos contínuos (Seção~\ref{subsec:lacunas}), mas o contexto de uma transição próxima ao início de um segmento pode atravessar a lacuna. O
+  relatório conta essas transições e compara a log-verossimilhança com e sem elas.
+  \item \textbf{Cache e reaproveitamento.} Cada MTD ajustado é guardado em JSON, com uma chave que inclui o modo, o $k$, o tamanho do bloco, o resumo SHA-256 da \textit{snapshot}, o tamanho do treino,
+  a ordem, o número de reinícios e a semente. Uma nova execução pula o EM do que já foi calculado. O \texttt{-{}-reuse} só copia configurações de relatórios que usaram a mesma \textit{snapshot} e os mesmos parâmetros
+  do MTD, o que permitiu ampliar os experimentos em etapas, sem refazer os ajustes anteriores.
+\end{itemize}
+
+\paragraph{Métricas.} Para cada modelo, no treino e no teste, o \textit{script} calcula a log-verossimilhança por símbolo, o BIC, a acurácia, a precisão, o \textit{recall} e o \textit{F1-score} por classe,
+a matriz de confusão e o acerto de direção. A decisão usa o $\arg\max$ da distribuição prevista. O acerto de direção considera apenas os \textit{candles} em que o símbolo real é $-1$ ou $+1$ e
+escolhe entre eles a classe de maior probabilidade, ignorando o 0, com intervalo de confiança de Wilson de 95\%. A direção é comparada à melhor constante (sempre $-1$ ou sempre $+1$), como descrito na Seção~\ref{subsec:modelos_ref}.
+
+\paragraph{Produto final.} A saída da execução é um par de arquivos em \texttt{relatorios/}, com nome \texttt{mtd\_<data da \textit{snapshot}>\_completa<sufixo>}: um relatório em Markdown (\texttt{.md}),
+legível, e um arquivo JSON (\texttt{.json}) com todos os números. Os valores citados neste trabalho saem do JSON, e o Markdown é gerado a partir dele. O relatório em Markdown contém:
+
+\begin{itemize}
+  \item \textbf{Fonte e parâmetros:} o resumo SHA-256 e o número de \textit{candles} da \textit{snapshot}, os parâmetros do MTD e as convenções de avaliação.
+  \item \textbf{Matrizes de resumo:} uma matriz por métrica, com uma linha por $k$ e uma coluna por modo e tamanho de bloco. Cada célula é uma configuração e mostra o MTD da ordem de menor BIC.
+  As métricas são: proporção de zeros no treino e no teste, log-verossimilhança por símbolo no teste, ganho sobre o modelo iid, acurácia em relação a ``sempre 0'', $F1$ médio das classes $-1$ e $+1$,
+  acerto de direção e margem da direção sobre a melhor constante.
+  \item \textbf{Verificações:} resumo do ajuste em todas as configurações, com a estabilidade dos reinícios, a ordem de menor BIC e o efeito das lacunas.
+  \item \textbf{Tabela completa:} uma linha por configuração, com os números exatos.
+  \item \textbf{Seções detalhadas:} só para as configurações indicadas em \texttt{-{}-detail}. Cada uma traz (1) a log-verossimilhança e o BIC dos modelos de referência, do MTD em cada ordem e do HMM;
+  (2) a previsão de um passo no teste, com acurácia, precisão, \textit{recall}, $F1$, matriz de confusão e direção; (3) a estrutura do MTD, com $\lambda$, $Q$, a distribuição estacionária e os tempos de memória
+  derivados dos autovalores de $Q$; (4) a estabilidade dos reinícios; (5) o efeito das lacunas no treino. As demais configurações constam apenas no JSON.
+\end{itemize}
+
 %3.5.4
 \subsection{Ambiente e reprodutibilidade}
 \label{subsec:ambiente}
@@ -1683,7 +1810,7 @@ python -m database.snapshot restore snapshot/btc_usdt_2026-10-01.parquet
 \end{verbatim}
 
 Também é possível executar os experimentos sem o banco. O módulo de discretização e os \textit{scripts} de análise leem o Parquet
-diretamente (opção \texttt{--snapshot}), após conferir o resumo SHA-256 contra o manifesto, de modo que os dados de entrada são
+diretamente (opção \texttt{-{}-snapshot}), após conferir o resumo SHA-256 contra o manifesto, de modo que os dados de entrada são
 verificados a cada execução.
 
 \paragraph{Ambiente.} O código foi desenvolvido em Python 3.14, e as dependências estão fixadas no arquivo \texttt{requirements.txt}.
