@@ -160,7 +160,8 @@ capturar. Foram realizadas a coleta e o armazenamento de nove anos de cotações
 discretização causal dos retornos em três símbolos. Também foi feita a implementação do MTD e de um HMM otimizado em Numba, 
 validado contra uma biblioteca de referência. Os experimentos avaliaram, em 60 configurações de discretização, a log-verossimilhança fora da amostra, 
 o BIC, a acurácia, o F1 das classes direcionais e o acerto de direção. Os resultados 
-mostraram que o HMM se destaca na log-verossimilhança e na identificação de regimes de volatilidade interpretáveis, obtendo o menor BIC em todas as 60 configurações. O MTD capturou uma memória que se estende por até dez defasagens, 
+mostraram que o HMM se destaca na log-verossimilhança e na identificação de regimes de volatilidade interpretáveis, obtendo o menor BIC em todas as 60 configurações. 
+A ordem escolhida pelo BIC foi a maior testada em todas as configurações, indicando uma memória longa e difusa, sem ganho de direção, 
 enquanto nenhum dos modelos apresentou acerto superior ao de uma previsão que repete sempre o mesmo sinal. Como extensões naturais deste trabalho, 
 destacam-se a combinação do HMM como previsor de volatilidade com modelos voltados à direção, a avaliação da direção condicionada 
 aos regimes identificados, a aplicação a outros ativos e a consideração de custos de transação.
@@ -2133,13 +2134,16 @@ configurações avaliadas. Em todas elas, os mesmos modelos são ajustados e com
 \end{table}
 
 O HMM foi ajustado com 3 estados ocultos em cada configuração, com 10 reinícios, tolerância relativa de $10^{-8}$, limite de 1.000 iterações e semente-base 0. 
-Os parâmetros do MTD estão descritos na Seção~\ref{sec:mtd}.
+Os parâmetros do MTD estão descritos na Seção~\ref{subsec:mtd_metodologia}.
 
 \subsection{Critérios de aceitação das hipóteses}
 \label{sec:criterios}
 
-\subsubsection{Hipótese principal.} A hipótese é aceita se o MTD, na ordem de menor BIC, obtiver F1 direcional superior ao do modelo aleatório e ao do modelo de persistência, 
-e acerto de direção com intervalo de confiança acima do acerto desses modelos. A ordem de menor BIC indica até onde a memória da série contribui para o ajuste.
+\subsubsection{Hipótese principal.} A hipótese é aceita se o MTD, na ordem de menor BIC, obtiver F1 direcional 
+superior ao do modelo aleatório e ao do modelo de persistência, e acerto de direção com intervalo de confiança 
+de $95\%$ acima do acerto da melhor constante e da cadeia de primeira ordem. A melhor constante é a referência 
+ingênua mais exigente para a direção, e a cadeia de primeira ordem indica se a memória de alta ordem acrescenta 
+algo ao símbolo imediatamente anterior.
 
 \subsubsection{Hipótese secundária.} A hipótese é aceita se o HMM obtiver log-verossimilhança no teste maior e BIC no treinamento menor que os do MTD e os da cadeia de primeira 
 ordem, sem perda no F1 direcional e no acerto de direção. O custo computacional é avaliado pelo tempo de ajuste de cada modelo, para julgar se o ganho obtido justifica a maior complexidade.
@@ -2200,7 +2204,180 @@ derivada de uma semente-base, o que torna os resultados repetíveis. O repositó
 \section{Resultados e análises}
 \label{sec:resultados}
 
-\subsection{Modelo Oculto de Markov}
+\subsection{Modelo de Mistura de Distribuições de Transição (MTD)}
+
+Os resultados desta seção vêm do relatório final do MTD, que cobre 60 configurações de discretização 
+(limiares $s/k$, com $k$ de 1 a 10, nos modos \textit{Global} e \textit{Blocks} com $n$ de 1, 2, 3, 6 e 12 meses). 
+Em cada uma, o MTD foi ajustado nas ordens 1 a 10, com 10 reinícios do algoritmo EM por ordem, e avaliado nos mesmos 5\% 
+finais da série (de 2026-04-17 a 2026-09-30), junto aos modelos de referência. 
+Duas perguntas orientam a análise: (i) o MTD prevê melhor que os modelos de referência o que acontece no próximo candle 
+(ficar parado ou se mover)? (ii) quando o candle se move, ele indica o sentido do movimento com desempenho superior? Antes de interpretar o desempenho, 
+a Tabela~\ref{tab:mtd_robustez} descarta que o resultado venha de falha de ajuste: todos os 6.000 reinícios convergem para a mesma solução, 
+e as transições que atravessam lacunas alteram a log-verossimilhança por símbolo em no máximo 0,000116 nats.
+
+\begin{table}[htb]
+  \centering
+  \caption{Verificações de que o resultado não vem de falha de ajuste}
+  \label{tab:mtd_robustez}
+  \small
+  \begin{tabular}{lr}
+    \toprule
+    Verificação & Resultado \\
+    \midrule
+    Reinícios do EM na mesma solução (±1 nat) & 6.000 de 6.000 \\
+    Reinícios que convergiram & 6.000 de 6.000 \\
+    Maior diferença entre o melhor e o pior reinício & 0,108 nats \\
+    Efeito das transições que atravessam lacunas (LL/símbolo) & $\leq$ 0,000116 nats \\
+    \bottomrule
+  \end{tabular}
+  \legend{Fonte: Elaborado pelos autores (2026). 60 configurações, ordens 1 a 10, 10 reinícios por ordem.}
+\end{table}
+
+
+\subsubsection{Pergunta (i): prever se o mercado se move}
+
+O MTD supera a distribuição iid em verossimilhança em todas as configurações, mas por pouco. O ganho por símbolo fica entre 0,0172 e 0,1063 nats (mediana 0,0403), o que equivale a explicar, em mediana, apenas 3,66\% da entropia do modelo iid (Tabela~\ref{tab:mtd_resumo}). O BIC também não ajuda a escolher uma estrutura: a ordem de menor BIC é a máxima testada (10) nas 60 configurações, isto é, a verossimilhança cresce a cada lag adicionado, sem um mínimo interno, e os pesos de lag decaem lentamente (0,134 no lag 1 e 0,083 no lag 10, na configuração \textit{Blocks} de 1 mês com $s/3$). Esse é o perfil de uma memória longa e difusa, e não de uma dependência de ordem finita bem definida.
+
+\begin{table}[htb]
+  \centering
+  \caption{Resumo do MTD nas 60 configurações de discretização}
+  \label{tab:mtd_resumo}
+  \small
+  \begin{tabular}{lrrr}
+    \toprule
+    Medida & Mínimo & Mediana & Máximo \\
+    \midrule
+    Ganho de LL sobre o iid (nats/símbolo) & 0,0172 & 0,0403 & 0,1063 \\
+    Fração da entropia do iid explicada & 1,68\% & 3,66\% & 25,61\% \\
+    \midrule
+    Direção do MTD & 47,85\% & 51,20\% & 51,71\% \\
+    Direção da cadeia de 1ª ordem & 49,97\% & 51,46\% & 51,79\% \\
+    Direção da persistência & 48,23\% & 48,64\% & 49,80\% \\
+    Melhor constante (sempre $-1$ ou sempre $+1$) & 50,00\% & 50,37\% & 51,69\% \\
+    Margem do MTD sobre a melhor constante (p.p.) & -3,85 & +0,82 & +1,54 \\
+    MTD menos cadeia de 1ª ordem (p.p.) & -3,16 & -0,21 & +0,16 \\
+    \midrule
+    Ordem de menor BIC igual à máxima testada (10) & \multicolumn{3}{c}{60 de 60} \\
+    IC 95\% do MTD acima da melhor constante & \multicolumn{3}{c}{41 de 60} \\
+    Significativo contra a melhor constante ($p<0{,}05$) & \multicolumn{3}{c}{47 de 60} \\
+    Idem, com correção de Bonferroni ($p<0{,}05/60$) & \multicolumn{3}{c}{26 de 60} \\
+    MTD com direção acima da cadeia de 1ª ordem & \multicolumn{3}{c}{6 de 60} \\
+    \bottomrule
+  \end{tabular}
+  \legend{Fonte: Elaborado pelos autores (2026). MTD da ordem de menor BIC em cada configuração. Teste unilateral (aproximação normal) do acerto de direção contra a melhor constante.}
+\end{table}
+
+
+Em acurácia, o resultado depende da discretização. Com limiares grandes ($s/1$ e $s/2$), a maioria dos símbolos é 0 e o MTD praticamente empata com o modelo que sempre prevê 0: em \textit{Blocks} de 1 mês com $s/1$ ele acerta 80,34\% contra 80,36\%, e no modo \textit{Global} com $s/1$, 95,43\% contra 95,44\%. Nos limiares seguintes, o MTD passa a superar a classe majoritária do teste: nos modos \textit{Blocks}, de $s/3$ em diante, a diferença vai de 0,9 a 8,7 pontos percentuais (por exemplo, 47,1\% contra 43,8\% em \textit{Blocks} de 1 mês com $s/3$, e 41,6\% contra 35,0\% em \textit{Blocks} de 3 meses com $s/5$); no modo \textit{Global}, só a partir de $s/5$. Esse ganho, porém, é de volatilidade: a Tabela~\ref{tab:mtd_volatilidade_direcao} mostra que, quando o MTD prevê movimento, ele acerta 72,9\% das vezes em \textit{Blocks} de 1 mês com $s/3$ (a base de candles que se movem é 56,2\%) e 60,7\% em \textit{Global} com $s/3$ (base de 32,0\%), mas esse acerto não se converte em direção: a coluna \textit{Dir. MTD} fica sempre próxima de 51\% e é praticamente igual à da cadeia de 1ª ordem.
+
+\begin{table}[htb]
+  \centering
+  \caption{Onde o MTD acerta: volatilidade e não direção}
+  \label{tab:mtd_volatilidade_direcao}
+  \footnotesize
+  \begin{tabular}{lrrrrrrr}
+    \toprule
+    Configuração & \shortstack[r]{Mov.\\real} & \shortstack[r]{Prec.\\mov.} & \shortstack[r]{Acur.\\MTD} & \shortstack[r]{Classe\\maj.} & \shortstack[r]{Dir.\\MTD} & \shortstack[r]{Dir. 1ª\\ordem} & \shortstack[r]{Melhor\\const.} \\
+    \midrule
+    \textit{Blocks}, 1 mês, $s/3$ & 56,2\% & 72,9\% & 47,1\% & 43,8\% & 51,17\% & 51,21\% & 50,86\% \\
+    \textit{Blocks}, 3 meses, $s/3$ & 49,3\% & 68,8\% & 51,6\% & 50,7\% & 51,24\% & 51,33\% & 50,14\% \\
+    \textit{Blocks}, 12 meses, $s/3$ & 49,3\% & 69,2\% & 51,6\% & 50,7\% & 51,57\% & 51,68\% & 50,71\% \\
+    \textit{Blocks}, 3 meses, $s/5$ & 65,0\% & 73,5\% & 41,6\% & 35,0\% & 51,44\% & 51,31\% & 50,23\% \\
+    \textit{Blocks}, 3 meses, $s/10$ & 80,5\% & 81,4\% & 42,0\% & 40,3\% & 51,35\% & 51,47\% & 50,03\% \\
+    \textit{Global}, $s/3$ & 32,0\% & 60,7\% & 67,5\% & 68,0\% & 50,44\% & 50,95\% & 50,52\% \\
+    \textit{Global}, $s/5$ & 50,4\% & 67,3\% & 50,3\% & 49,6\% & 51,71\% & 51,79\% & 50,76\% \\
+    \bottomrule
+  \end{tabular}
+  \legend{Fonte: Elaborado pelos autores (2026). Mov. real: fração dos \textit{candles} de teste com símbolo $\pm1$. Prec. mov.: fração das previsões de movimento do MTD que de fato foram movimento. Dir.: acerto de direção entre os \textit{candles} que se moveram.}
+\end{table}
+
+
+\subsubsection{Pergunta (ii): prever a direção}
+
+Para medir a direção, o modelo é obrigado a escolher entre $-1$ e $+1$ nos candles que de fato se moveram (regra que ignora o 0). Na configuração \textit{Blocks} de 1 mês com $s/3$, 26.903 candles de teste se moveram, 13.682 de queda e 13.221 de alta, e o MTD da ordem 10 acerta 51,17\% (IC de 95\%: 50,58\% a 51,77\%), enquanto a cadeia de 1ª ordem acerta 51,21\% e a persistência, 48,79\%. O mesmo padrão aparece nas 60 configurações (Tabela~\ref{tab:mtd_resumo}):
+\begin{itemize}
+  \item a direção do MTD varia de 47,85\% a 51,71\% (mediana 51,20\%), e a margem sobre a melhor constante (sempre $-1$ ou sempre $+1$) tem mediana de apenas 0,82 ponto percentual e máximo de 1,54;
+  \item a persistência fica sempre abaixo de 50\% (de 48,23\% a 49,80\%), ou seja, repetir o sinal anterior erra mais que acerta: depois de um $-1$ o próximo movimento é $+1$ em 51,2\% dos casos, e depois de um $+1$ o próximo é $-1$ em 53,3\% (\textit{Blocks} de 1 mês, $s/3$, teste);
+  \item a cadeia de 1ª ordem já captura essa reversão e iguala o MTD: a direção do MTD supera a da cadeia de 1ª ordem em apenas 6 das 60 configurações, com diferença mediana de $-0{,}21$ ponto percentual e máxima de $+0{,}16$, abaixo do erro padrão de cerca de 0,3 ponto percentual.
+\end{itemize}
+
+É preciso ser preciso quanto ao que isso significa. Contra a melhor constante, a margem do MTD é estatisticamente detectável em boa parte das configurações: o IC de 95\% fica acima dela em 41 das 60, e em 26 delas a diferença permanece significativa mesmo com a correção de Bonferroni para 60 comparações (Tabela~\ref{tab:mtd_resumo}). Esses testes supõem observações independentes, o que a série não satisfaz (a volatilidade se agrupa), e por isso tendem a ser otimistas. Mas, mesmo aceitando-os, o ponto central é outro: a margem (no máximo 1,54 ponto percentual) já existe na cadeia de 1ª ordem. A memória longa, que é o que o MTD acrescenta, não traz informação direcional. A Tabela~\ref{tab:mtd_ordem} deixa isso explícito: de uma ordem para dez, a log-verossimilhança no teste sobe de $-1{,}0600$ para $-1{,}0236$ (ganho sobre o iid de 0,0154 para 0,0517 nats) e o BIC cai de 1.934.138 para 1.870.879, enquanto a direção permanece em 51,2\% (51,21\% na ordem 1, 51,17\% na ordem 10).
+
+\begin{table}[htb]
+  \centering
+  \caption{Mais memória aumenta a verossimilhança, mas não a direção (\textit{Blocks}, $n=1$ mês, limiar $s/3$)}
+  \label{tab:mtd_ordem}
+  \small
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Modelo & Parâm. & \shortstack[r]{LL/símbolo\\(teste)} & \shortstack[r]{Ganho\\s/ iid} & \shortstack[r]{BIC\\(treino)} & \shortstack[r]{Direção\\(teste)} \\
+    \midrule
+    Frequências do treino (iid) & 2 & -1,0753 & 0,0000 & 1.958.146 & 49,14\% \\
+    MTD de ordem 1 & 6 & -1,0600 & 0,0154 & 1.934.138 & 51,21\% \\
+    MTD de ordem 2 & 7 & -1,0506 & 0,0248 & 1.917.559 & 51,53\% \\
+    MTD de ordem 3 & 8 & -1,0440 & 0,0313 & 1.905.689 & 51,41\% \\
+    MTD de ordem 5 & 10 & -1,0354 & 0,0399 & 1.890.299 & 51,51\% \\
+    MTD de ordem 10 & 15 & -1,0236 & 0,0517 & 1.870.879 & 51,17\% \\
+    HMM com 3 estados & 14 & -1,0154 & 0,0599 & 1.858.005 & 50,13\% \\
+    \bottomrule
+  \end{tabular}
+  \legend{Fonte: Elaborado pelos autores (2026). LL em nats por símbolo; ganho sobre as frequências do treino (iid).}
+\end{table}
+
+
+\subsubsection{Por que os dados não sustentam o MTD}
+
+Os resultados convergem para uma explicação que vem dos próprios dados, e não do modelo ou do ajuste.
+
+\textbf{A dependência está na volatilidade, não na direção.} Os retornos financeiros são em geral não autocorrelacionados linearmente, mas apresentam agrupamento de volatilidade \cite{morettin2018analise}. Na discretização em três símbolos, isso significa que a sequência de $\pm1$ e 0 é previsível quanto a haver ou não movimento, mas quase imprevisível quanto ao sentido. É exatamente o que a Tabela~\ref{tab:mtd_volatilidade_direcao} mostra: o MTD detecta movimento com precisão de 60,7\% a 81,4\% (bem acima da base nas configurações em que o movimento é minoria) e acerta o sentido em cerca de 51\%. O ganho de verossimilhança também cai à medida que o limiar diminui (em \textit{Blocks} de 1 mês, de 0,0673 nats em $s/1$ para 0,0172 em $s/10$): quando os símbolos $\pm1$ passam a incluir movimentos pequenos, a parte previsível (a alternância entre calma e agitação) fica diluída. O HMM de 3 estados reforça a leitura. Na única configuração em que foi comparado (\textit{Blocks} de 1 mês, $s/3$), ele obtém verossimilhança maior que a do MTD da ordem 10 ($-1{,}0154$ contra $-1{,}0236$ por símbolo) e BIC menor (1.858.005 contra 1.870.879) com um parâmetro a menos (14 contra 15), mas acerta a direção em 50,13\% e nunca prevê $+1$: seus estados capturam regimes de volatilidade, não de direção (Tabela~\ref{tab:mtd_ordem}). Um modelo cuja ordem ``ótima'' é sempre a máxima, e que perde em verossimilhança para um modelo de poucos estados latentes, está aproximando um regime de volatilidade com muitos lags.
+
+\textbf{O pouco de direção que existe é reversão de curtíssimo prazo.} A direção do MTD e a da cadeia de 1ª ordem coincidem, e a persistência (que prevê o oposto) fica abaixo de 50\%. Isso é compatível com ruído de microestrutura em alta frequência \cite{jjfinec}, no qual movimentos pequenos de um candle tendem a ser parcialmente desfeitos no seguinte. Como esse efeito se esgota no lag 1, ordens maiores não o ampliam.
+
+\textbf{A série não é estacionária, e isso contamina até o ganho aparente.} A Tabela~\ref{tab:mtd_estacionariedade} mostra que, no modo \textit{Global} com $s/3$, a proporção de zeros salta de 51,02\% no treino para 67,96\% no teste, porque o período de teste é menos volátil que a média histórica; ao longo dos anos, essa proporção varia de 31,47\% (2017) a 67,73\% (2023). Justamente nesse modo o ganho de verossimilhança é o maior (0,1059 nats, contra 0,0454 a 0,0669 nos modos \textit{Blocks}), o que indica que parte do ``ganho'' é o MTD condicionando no contexto recente para se ajustar ao nível de volatilidade, e não a descoberta de uma dependência estável entre símbolos. O modo \textit{Blocks} reduz o deslocamento (de $+0{,}40$ a $+5{,}83$ pontos percentuais), mas não o elimina, e a direção continua em torno de 51\% em todos os tamanhos de bloco.
+
+\begin{table}[htb]
+  \centering
+  \caption{A volatilidade do teste difere da do treino (limiar $s/3$)}
+  \label{tab:mtd_estacionariedade}
+  \small
+  \begin{tabular}{lrrrr}
+    \toprule
+    Discretização & Zeros (treino) & Zeros (teste) & Variação (p.p.) & Ganho de LL s/ iid \\
+    \midrule
+    \textit{Global} & 51,02\% & 67,96\% & +16,94 & 0,1059 \\
+    \textit{Blocks}, 1 mês & 42,33\% & 43,83\% & +1,49 & 0,0517 \\
+    \textit{Blocks}, 2 meses & 44,03\% & 48,35\% & +4,32 & 0,0669 \\
+    \textit{Blocks}, 3 meses & 44,83\% & 50,65\% & +5,83 & 0,0530 \\
+    \textit{Blocks}, 6 meses & 47,58\% & 47,98\% & +0,40 & 0,0464 \\
+    \textit{Blocks}, 12 meses & 49,90\% & 50,68\% & +0,77 & 0,0454 \\
+    \bottomrule
+  \end{tabular}
+  \legend{Fonte: Elaborado pelos autores (2026). Ganho de LL em nats por símbolo, do MTD da ordem de menor BIC.}
+\end{table}
+
+
+\subsubsection{Conclusão sobre a hipótese}
+
+A hipótese principal afirma que a sequência de movimentos do Bitcoin apresenta dependência temporal suficiente 
+para que uma Cadeia de Markov (o MTD) preveja a direção do próximo movimento com desempenho superior ao dos modelos ingênuos. 
+Os resultados não sustentam essa hipótese, e por três razões independentes. Primeiro, a margem de direção sobre a melhor constante 
+é de no máximo 1,54 ponto percentual (mediana de 0,82), e a do MTD sobre a persistência decorre de a persistência errar 
+sistematicamente: não há sinal direcional relevante nesta discretização. Segundo, o pouco que existe é capturado 
+já pela cadeia de 1ª ordem, de modo que a memória longa, que justifica o MTD, não acrescenta nada em direção: o 
+MTD supera a 1ª ordem em 6 de 60 configurações. Terceiro, o que o MTD de fato modela é o agrupamento de 
+volatilidade, e isso não responde à pergunta de direção; o BIC, que escolhe a ordem máxima em todas as 
+configurações, e o desempenho superior do HMM de 3 estados em verossimilhança indicam que essa dependência é 
+melhor descrita por regimes latentes do que por lags aditivos. Rejeita-se, portanto, a hipótese de que o 
+MTD seja superior aos modelos de referência para prever a direção; para a pergunta (i), o MTD só se 
+distingue do modelo ``sempre 0'' (ou da classe majoritária) a partir de $s/3$ nos modos \textit{Blocks}, 
+e então por detectar volatilidade, não direção.
+
+Como limitações, os testes de significância assumem independência entre candles, a avaliação cobre cerca de 
+cinco meses de teste e um único ativo, e não houve análise econômica (custos de transação e \textit{spreads}), 
+de modo que a margem de cerca de 1 ponto percentual não deve ser lida como oportunidade de negociação. A validade dessa conclusão 
+também se restringe à discretização em três símbolos, que descarta a magnitude dos retornos.
+
+\subsection{Modelo Oculto de Markov (HMM)}
 \label{sec:res_hmm}
 
 \subsubsection{Ajuste e comparação com os modelos de referência}
@@ -2556,10 +2733,10 @@ resultados da configuração principal com o critério definido na Seção \ref{
         \toprule
         \textbf{Critério} & \textbf{HMM} & \textbf{Cadeia de 1ª ordem} & \textbf{MTD} & \textbf{Atendido} \\
         \midrule
-        LL/símbolo no teste & $-1{,}01545$ & $-1{,}05997$ & --- & Sim \\
-        BIC no treinamento & 1.858.005,0 & 1.934.137,9 & --- & Sim \\
+        LL/símbolo no teste & $-1{,}01545$ & $-1{,}05997$ & $-1{,}0236$ & Sim \\
+        BIC no treinamento & 1.858.005,0 & 1.934.137,9 & 1.870.879 & Sim \\
         F1 direcional & 0,201 & 0,000 & --- & Sim \\
-        Acerto de direção & 50,13\% & 51,21\% & --- & Não \\
+        Acerto de direção & 50,13\% & 51,21\% & 51,17\% & Não \\
         \bottomrule
     \end{tabular}
     \fonte{Elaborado pelos autores (2026).}

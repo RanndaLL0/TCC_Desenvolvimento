@@ -7,11 +7,16 @@
 \contentsline {table}{\numberline {5}{\ignorespaces \textit {Kernels} compilados do HMM e sua função.}}{58}{table.3.5}%
 \contentsline {table}{\numberline {6}{\ignorespaces Resultados da validação da implementação do HMM.}}{60}{table.3.6}%
 \contentsline {table}{\numberline {7}{\ignorespaces Configurações experimentais.}}{61}{table.3.7}%
-\contentsline {table}{\numberline {8}{\ignorespaces Log-verossimilhança e BIC dos modelos de referência e do HMM na configuração principal.}}{63}{table.3.8}%
-\contentsline {table}{\numberline {9}{\ignorespaces Estados do HMM de 3 estados na configuração principal.}}{64}{table.3.9}%
-\contentsline {table}{\numberline {10}{\ignorespaces Matriz de transição $A$ do HMM na configuração principal (linha: estado atual, coluna: próximo estado).}}{65}{table.3.10}%
-\contentsline {table}{\numberline {11}{\ignorespaces Resultado dos 10 reinícios do HMM na configuração principal.}}{66}{table.3.11}%
-\contentsline {table}{\numberline {12}{\ignorespaces Previsão de movimento no conjunto de teste da configuração principal.}}{67}{table.3.12}%
-\contentsline {table}{\numberline {13}{\ignorespaces Acerto de direção no conjunto de teste da configuração principal.}}{68}{table.3.13}%
-\contentsline {table}{\numberline {14}{\ignorespaces Matriz de confusão do HMM no conjunto de teste da configuração principal (linha: símbolo real, coluna: símbolo previsto).}}{68}{table.3.14}%
-\contentsline {table}{\numberline {15}{\ignorespaces Critérios da hipótese secundária na configuração principal.}}{69}{table.3.15}%
+\contentsline {table}{\numberline {8}{\ignorespaces Verificações de que o resultado não vem de falha de ajuste}}{64}{table.3.8}%
+\contentsline {table}{\numberline {9}{\ignorespaces Resumo do MTD nas 60 configurações de discretização}}{64}{table.3.9}%
+\contentsline {table}{\numberline {10}{\ignorespaces Onde o MTD acerta: volatilidade e não direção}}{65}{table.3.10}%
+\contentsline {table}{\numberline {11}{\ignorespaces Mais memória aumenta a verossimilhança, mas não a direção (\textit {Blocks}, $n=1$ mês, limiar $s/3$)}}{66}{table.3.11}%
+\contentsline {table}{\numberline {12}{\ignorespaces A volatilidade do teste difere da do treino (limiar $s/3$)}}{67}{table.3.12}%
+\contentsline {table}{\numberline {13}{\ignorespaces Log-verossimilhança e BIC dos modelos de referência e do HMM na configuração principal.}}{68}{table.3.13}%
+\contentsline {table}{\numberline {14}{\ignorespaces Estados do HMM de 3 estados na configuração principal.}}{69}{table.3.14}%
+\contentsline {table}{\numberline {15}{\ignorespaces Matriz de transição $A$ do HMM na configuração principal (linha: estado atual, coluna: próximo estado).}}{70}{table.3.15}%
+\contentsline {table}{\numberline {16}{\ignorespaces Resultado dos 10 reinícios do HMM na configuração principal.}}{71}{table.3.16}%
+\contentsline {table}{\numberline {17}{\ignorespaces Previsão de movimento no conjunto de teste da configuração principal.}}{72}{table.3.17}%
+\contentsline {table}{\numberline {18}{\ignorespaces Acerto de direção no conjunto de teste da configuração principal.}}{73}{table.3.18}%
+\contentsline {table}{\numberline {19}{\ignorespaces Matriz de confusão do HMM no conjunto de teste da configuração principal (linha: símbolo real, coluna: símbolo previsto).}}{73}{table.3.19}%
+\contentsline {table}{\numberline {20}{\ignorespaces Critérios da hipótese secundária na configuração principal.}}{74}{table.3.20}%

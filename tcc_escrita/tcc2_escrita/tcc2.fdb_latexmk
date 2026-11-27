@@ -1,20 +1,20 @@
 # Fdb version 4
-["bibtex tcc2"] 1795789073.71199 "tcc2.aux" "tcc2.bbl" "tcc2" 1795819292.57767 0
+["bibtex tcc2"] 1795822945.44986 "tcc2.aux" "tcc2.bbl" "tcc2" 1795823172.7608 0
   "./bibliografia_tcc2.bib" 1795551062.13975 30942 c18379cc880860a7abbf6242b726d09d ""
   "/usr/share/texlive/texmf-dist/bibtex/bib/abntex2/abntex2-options.bib" 1357081713 5396 4eb260dac60f150ae608d45252853090 ""
   "/usr/share/texlive/texmf-dist/bibtex/bst/abntex2/abntex2-alf.bst" 1543183680 60064 0819ac8568f9a482510a46e3a8a6f605 ""
-  "tcc2.aux" 1795819292.04256 94238 65a065a46876d9aa9cc190d91ed8ddc7 "pdflatex"
+  "tcc2.aux" 1795823172.03789 99480 312610d75a788e095b6a935e0ac61f56 "pdflatex"
   (generated)
   "tcc2.bbl"
   "tcc2.blg"
   (rewritten before read)
-["makeindex tcc2.idx"] 1795551232.65464 "tcc2.idx" "tcc2.ind" "tcc2" 1795819292.57752 0
-  "tcc2.idx" 1795819290.81393 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+["makeindex tcc2.idx"] 1795551232.65464 "tcc2.idx" "tcc2.ind" "tcc2" 1795823172.76069 0
+  "tcc2.idx" 1795823170.66986 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
   (generated)
   "tcc2.ilg"
   "tcc2.ind"
   (rewritten before read)
-["pdflatex"] 1795819289.84477 "tcc2.tex" "tcc2.pdf" "tcc2" 1795819292.57789 0
+["pdflatex"] 1795823169.61046 "tcc2.tex" "tcc2.pdf" "tcc2" 1795823172.76101 0
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc" 1254269338 2375 baa924870cfb487815765f9094cf3728 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc" 1202520719 3486 c7eadf5dcc57b3b2d11736679f6636ba ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc" 1202520719 2405 5dcf2c1b967ee25cc46c58cd52244aed ""
@@ -308,14 +308,14 @@
   "images/Matriz_de_confusao.png" 1792432561.48232 13893 2321996870989a6836ba91b7f9e14e80 ""
   "images/Timestamp.png" 1792432561.48232 16982 056aca09cadb7cce2c5ac91e2406d089 ""
   "images/grafico_kblocos.png" 1792432561.48232 54023 fa8707e1bc429cfc9390fa4b4af4c26b ""
-  "tcc2.aux" 1795819292.04256 94238 65a065a46876d9aa9cc190d91ed8ddc7 "pdflatex"
-  "tcc2.bbl" 1795789073.85522 11763 0c30ed18c6a728a7631804996adb9f84 "bibtex tcc2"
-  "tcc2.brf" 1795819292.05495 8048 cba8858b14d72e16064f8030f062af0f "pdflatex"
+  "tcc2.aux" 1795823172.03789 99480 312610d75a788e095b6a935e0ac61f56 "pdflatex"
+  "tcc2.bbl" 1795822945.57331 11763 0c30ed18c6a728a7631804996adb9f84 "bibtex tcc2"
+  "tcc2.brf" 1795823172.05289 8178 1c7fcaa21c14c557a7bf06b19901b1d5 "pdflatex"
   "tcc2.ind" 1795551233.16457 0 d41d8cd98f00b204e9800998ecf8427e "makeindex tcc2.idx"
-  "tcc2.lof" 1795819292.05595 1749 cc6350aa6c1357d013a1fc46040056ea "pdflatex"
-  "tcc2.lot" 1795819292.05595 2258 404520e1c160eda7482a4ecb19e51814 "pdflatex"
-  "tcc2.tex" 1795819289.5579 184313 fc57c98016692ad2fc04a011b8be3027 ""
-  "tcc2.toc" 1795819292.05595 12361 e3e33527c4ce3bc279cc3a66efbe7177 "pdflatex"
+  "tcc2.lof" 1795823172.05408 1749 8cb79f68f87b4e626ed95a2389af9ed5 "pdflatex"
+  "tcc2.lot" 1795823172.05408 2952 90475a0362ab592701990ec96106f952 "pdflatex"
+  "tcc2.tex" 1795823169.33192 200447 7c9ca73783a2b6863509414f41b7d1a5 ""
+  "tcc2.toc" 1795823172.05408 12958 cd7d4f4397d9b636d5e5af13afb992f7 "pdflatex"
   (generated)
   "tcc2.aux"
   "tcc2.brf"
