@@ -1,10 +1,17 @@
 \babel@toc {brazil}{}\relax 
 \babel@toc {brazil}{}\relax 
-\contentsline {table}{\numberline {1}{\ignorespaces Comparação entre trabalhos relacionados.}}{44}{table.2.1}%
+\contentsline {table}{\numberline {1}{\ignorespaces Comparação entre trabalhos relacionados.}}{45}{table.2.1}%
 \contentsline {table}{\numberline {2}{\ignorespaces \textit {Candles}, lacunas e segmentos da \textit {snapshot}}}{49}{table.3.2}%
 \contentsline {table}{\numberline {3}{\ignorespaces Distribuição percentual dos símbolos, em \%, por modo de discretização e limiar}}{50}{table.3.3}%
-\contentsline {table}{\numberline {4}{\ignorespaces Proporção entre treino e teste, em número de símbolos, por modo de discretização e intervalo de atualização $n$ (idêntica para todo $k$ de 1 a 10)}}{51}{table.3.4}%
-\contentsline {table}{\numberline {5}{\ignorespaces \textit {Kernels} compilados do HMM e sua função.}}{57}{table.3.5}%
-\contentsline {table}{\numberline {6}{\ignorespaces Resultados da validação da implementação do HMM.}}{59}{table.3.6}%
-\contentsline {table}{\numberline {7}{\ignorespaces Cenários experimentais.}}{60}{table.3.7}%
-\contentsline {table}{\numberline {8}{\ignorespaces Comparação de métricas reportadas}}{63}{table.3.8}%
+\contentsline {table}{\numberline {4}{\ignorespaces Proporção entre treino e teste, em número de símbolos, por modo de discretização e intervalo de atualização $n$ (idêntica para todo $k$ de 1 a 10)}}{52}{table.3.4}%
+\contentsline {table}{\numberline {5}{\ignorespaces \textit {Kernels} compilados do HMM e sua função.}}{58}{table.3.5}%
+\contentsline {table}{\numberline {6}{\ignorespaces Resultados da validação da implementação do HMM.}}{60}{table.3.6}%
+\contentsline {table}{\numberline {7}{\ignorespaces Configurações experimentais.}}{61}{table.3.7}%
+\contentsline {table}{\numberline {8}{\ignorespaces Log-verossimilhança e BIC dos modelos de referência e do HMM na configuração principal.}}{63}{table.3.8}%
+\contentsline {table}{\numberline {9}{\ignorespaces Estados do HMM de 3 estados na configuração principal.}}{64}{table.3.9}%
+\contentsline {table}{\numberline {10}{\ignorespaces Matriz de transição $A$ do HMM na configuração principal (linha: estado atual, coluna: próximo estado).}}{65}{table.3.10}%
+\contentsline {table}{\numberline {11}{\ignorespaces Resultado dos 10 reinícios do HMM na configuração principal.}}{66}{table.3.11}%
+\contentsline {table}{\numberline {12}{\ignorespaces Previsão de movimento no conjunto de teste da configuração principal.}}{67}{table.3.12}%
+\contentsline {table}{\numberline {13}{\ignorespaces Acerto de direção no conjunto de teste da configuração principal.}}{68}{table.3.13}%
+\contentsline {table}{\numberline {14}{\ignorespaces Matriz de confusão do HMM no conjunto de teste da configuração principal (linha: símbolo real, coluna: símbolo previsto).}}{68}{table.3.14}%
+\contentsline {table}{\numberline {15}{\ignorespaces Critérios da hipótese secundária na configuração principal.}}{69}{table.3.15}%

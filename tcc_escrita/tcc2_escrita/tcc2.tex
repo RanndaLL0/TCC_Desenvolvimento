@@ -158,11 +158,10 @@ O objetivo principal do trabalho é avaliar a capacidade desses modelos de preve
 janelas de cinco minutos, comparando-os a modelos de referência e identificando que tipo de dependência temporal cada um consegue 
 capturar. Foram realizadas a coleta e o armazenamento de nove anos de cotações do par BTC/USDT e a definição de uma 
 discretização causal dos retornos em três símbolos. Também foi feita a implementação do MTD e de um HMM otimizado em Numba, 
-validado contra uma biblioteca de referência. Os experimentos avaliaram log-verossimilhança fora da amostra, AUC, acerto de 
-direção e F1 das classes direcionais, além de testes de estabilidade no tempo e de sensibilidade à discretização. Os resultados 
-mostraram que o HMM se destaca na log-verossimilhança e na identificação de regimes de volatilidade interpretáveis, superando a 
-cadeia de primeira ordem em todos os períodos avaliados. O MTD capturou uma memória que se estende por até dez defasagens, 
-enquanto nenhum dos modelos apresentou acerto de direção distinguível do acaso. Como extensões naturais deste trabalho, 
+validado contra uma biblioteca de referência. Os experimentos avaliaram, em 60 configurações de discretização, a log-verossimilhança fora da amostra, 
+o BIC, a acurácia, o F1 das classes direcionais e o acerto de direção. Os resultados 
+mostraram que o HMM se destaca na log-verossimilhança e na identificação de regimes de volatilidade interpretáveis, obtendo o menor BIC em todas as 60 configurações. O MTD capturou uma memória que se estende por até dez defasagens, 
+enquanto nenhum dos modelos apresentou acerto superior ao de uma previsão que repete sempre o mesmo sinal. Como extensões naturais deste trabalho, 
 destacam-se a combinação do HMM como previsor de volatilidade com modelos voltados à direção, a avaliação da direção condicionada 
 aos regimes identificados, a aplicação a outros ativos e a consideração de custos de transação.
 
@@ -181,22 +180,19 @@ aos regimes identificados, a aplicação a outros ativos e a consideração de c
 % resumo em língua estrangeira vem logo após o resumo em português.
 \begin{resumo}[Abstract]
  \begin{otherlanguage*}{english}
-   Cryptocurrencies, especially Bitcoin, show high volatility and a large trading volume, which makes it difficult to anticipate their 
-   price behavior over short time intervals. The literature that applies Markov chains to these assets focuses on 
-   daily or hourly windows, where the exponential growth in the number of parameters limits the order of the models. 
-   Thus, one solution is to use more compact stochastic models, such as high-order Markov chains in the 
-   Mixture Transition Distribution (MTD) model and Hidden Markov Models (HMM). The main objective of this work is to evaluate the 
-   ability of these models to predict the direction of Bitcoin’s next movement in five-minute windows, 
-   comparing them with baseline models and identifying which kind of temporal dependence each one is able to capture. 
-   Nine years of BTC/USDT price data were collected and stored, and a causal discretization of returns into three symbols was defined. 
-   The MTD model and an HMM optimized in Numba were also implemented, and the HMM was validated against a reference library. 
-   The experiments evaluated out-of-sample log-likelihood, AUC, directional accuracy and the F1 score of the directional classes, 
-   along with tests of stability over time and of sensitivity to the discretization. The results showed that the HMM stands 
-   out in log-likelihood and in identifying interpretable volatility regimes, outperforming the first-order chain in every 
-   period evaluated. The MTD captured a memory that extends up to ten lags, while none of the models achieved directional 
-   accuracy distinguishable from chance. Natural extensions of this work include combining the HMM, as a volatility predictor, 
-   with direction-oriented models; evaluating direction conditioned on the identified regimes; applying the approach to other assets; 
-   and accounting for transaction costs.
+   Cryptocurrencies, particularly Bitcoin, present high volatility and a large trading volume, which makes it difficult to anticipate their price behavior over short time intervals. 
+   The literature applying Markov Chains to these assets focuses on daily or hourly windows, where the exponential growth in the number of parameters limits the models' order. 
+   Thus, one solution is to use more compact stochastic models, such as high-order Markov Chains in the Mixture Transition Distribution (MTD) model and Hidden Markov Models (HMM).
+
+   The main objective of this work is to evaluate the ability of these models to predict the direction of Bitcoin's next movement in five-minute windows, comparing them to 
+   benchmark models and identifying what kind of temporal dependence each can capture. Nine years of quotes for the BTC/USDT pair were collected and stored, and a causal 
+   discretization of the returns into three symbols was defined. The MTD and an HMM optimized in Numba were also implemented and validated against a reference library.
+
+   The experiments evaluated, across 60 discretization settings, the out-of-sample log-likelihood, the BIC, the accuracy, the F1 score of the directional classes, and the 
+   directional hit rate. The results showed that the HMM stands out in log-likelihood and in the identification of interpretable volatility regimes, obtaining the lowest 
+   BIC across all 60 settings. The MTD captured a memory extending up to ten lags, while none of the models presented a hit rate superior to a prediction that consistently 
+   repeats the same sign. As natural extensions of this work, we highlight the combination of the HMM as a volatility predictor with direction-oriented models, 
+   the evaluation of direction conditioned on the identified regimes, the application to other assets, and the consideration of transaction costs.
 
    \vspace{\onelineskip}
 
@@ -240,12 +236,9 @@ aos regimes identificados, a aplicação a outros ativos e a consideração de c
 \toprule
 \textbf{Abreviatura/Sigla} & \textbf{Significado} \\
 \midrule
-AIC     & \emph{Akaike Information Criterion} (Critério de Informação de Akaike) \\
-AUC     & \emph{Area Under the Curve} (Área sob a Curva ROC) \\
 BIC     & \emph{Bayesian Information Criterion} (Critério de Informação Bayesiano) \\
 BTC     & \emph{Bitcoin} \\
 EM      & \emph{Expectation-Maximization} (Maximização da Expectativa) \\
-EWMA    & \emph{Exponentially Weighted Moving Average} (Média Móvel Exponencialmente Ponderada) \\
 HMM     & \emph{Hidden Markov Model} (Modelo Oculto de Markov) \\
 IC      & Intervalo de Confiança \\
 LDA     & \emph{Linear Discriminant Analysis} (Análise Discriminante Linear) \\
@@ -682,6 +675,7 @@ Uma das suposições mais recorrentes na análise de séries temporais é a de e
 É justamente esse comportamento que motiva a transformação dos preços em retornos, ao utilizar a diferença de logaritmos se busca uma série mais próxima da estacionariedade, condição que é necessária para grande parte das técnicas de modelagem de sistemas de previsão. Em relação à autocorrelação, os retornos financeiros apresentam um padrão peculiar, sendo, em geral, não autocorrelacionados de maneira linear \cite{morettin2018analise}, o que na prática significa que os retornos passados não servem para realizar as previsões na série de maneira linear.
 
 \subsubsection{Fatos estilizados dos Retornos financeiros}
+\label{fatos_estilizados}
 
 Os retornos financeiros apresentam características peculiares que não se observam em outras séries temporais. Tipicamente, eles não exibem tendências nem sazonalidade. Os principais fatos estilizados podem ser resumidos nos seguintes pontos \cite{morettin2018analise}:
 \begin{enumerate}
@@ -1090,15 +1084,27 @@ A partir da combinação das variáveis \textit{forward} ($\alpha$) e \textit{ba
 probabilidade de estar em um estado específico em um dado momento, ajustando iterativamente os parâmetros do modelo para maximizar a probabilidade da 
 sequência de observações fornecida no treinamento \cite{jm3}.
 
-\subsubsection{Ótimos locais e reinícios}
+\subsubsection{Previsão pelo filtro \textit{forward}}
+\label{sec:filtro_forward}
 
-\subsubsection{Escalonamento numérico}
+O algoritmo \textit{Forward} também pode ser usado para prever a próxima observação 
+usando apenas as observações já ocorridas. Quando usado dessa forma, recebe o nome de filtro \textit{forward}.
 
-\subsubsection{Previsão pelo filtro forward}
+Se os valores $\alpha_t(i)$ de um instante forem divididos pela sua soma, eles passam a somar 1 e indicam a probabilidade de o modelo estar no estado $i$, 
+dadas as observações até o instante $t$. A partir deles, a previsão da observação seguinte é feita em três passos:
 
-Dado o funcionamento e as características dos modelos preditivos que iremos utilizar para alcançar os objetivos do trabalho,
-é de fundamental importância entender como iremos tratar os dados de retorno da série temporal do Bitcoin para a realização do treinamento
-dos modelos. A próxima seção é dedicada a como iremos tratar e preparar os dados para estes modelos.
+\begin{enumerate}
+    \item \textbf{Onde o modelo está:} os valores $\alpha_t(i)$ indicam a chance de cada estado oculto no instante atual;
+    \item \textbf{Para onde o modelo vai:} multiplicando esses valores pela matriz de transição $A$, obtém-se a chance de cada estado no instante seguinte;
+    \item \textbf{O que cada estado emite:} multiplicando o resultado pela matriz de emissão $B$, obtém-se a probabilidade de cada símbolo no instante seguinte.
+\end{enumerate}
+
+O resultado é a probabilidade para cada um dos símbolos (queda, estabilidade e alta). A previsão do modelo é o símbolo de maior probabilidade, 
+e a probabilidade atribuída ao símbolo que de fato ocorreu é a usada no cálculo da log-verossimilhança.
+
+Após a previsão, a observação real do instante $t+1$ é incorporada pelo próprio algoritmo \textit{Forward}, conforme a Equação \ref{probabilidade_de_alfa}, e o 
+processo se repete para o \textit{candle} seguinte. Como cada previsão usa apenas o passado, o filtro \textit{forward} não utiliza informação do futuro, ao 
+contrário do algoritmo de Viterbi, que decodifica a sequência inteira de uma só vez.
 
 \subsection{Discretização e representação simbólica de séries temporais}
 
@@ -1138,15 +1144,14 @@ em um símbolo segundo a relação
 
 em que os símbolos $-1$, $0$ e $1$ representam, respectivamente, uma queda significativa, uma oscilação pouco expressiva em 
 torno da média e uma alta significativa. O parâmetro $k$ controla a largura da faixa central: quanto maior o valor de $k$, 
-mais estreita é a faixa e menor é a fração de símbolos $0$. Por isso, além de $k = 3$, são avaliados os limiares $s/4$ e $s/5$, 
-que tornam as três classes mais equilibradas.
+mais estreita é a faixa e menor é a fração de símbolos $0$. Por isso, além de $k = 3$, foram executados os limiares de $s/1$ a $s/10$.
 
 A decisão central da discretização é a escolha do conjunto de referência sobre o qual $\overline{r}$ e $s$ são estimados. 
 
 A forma mais simples, aqui denominada limiar fixo, estima esses valores uma única vez, sobre toda a amostra ou apenas 
 sobre o conjunto de treinamento, e os aplica a todos os retornos. Essa forma pressupõe que a variância dos retornos seja 
-constante ao longo do tempo, como discutido na Seção \label{sec:fatos_estilizados}, porém, a volatilidade do Bitcoin 
-diminui ao longo dos anos. Com um limiar fixo, um mesmo valor de retorno é classificado como movimento 
+constante ao longo do tempo, como discutido na Seção \ref{fatos_estilizados} \cite{morettin2018analise}, porém, 
+a volatilidade do Bitcoin diminui ao longo dos anos. Com um limiar fixo, um mesmo valor de retorno é classificado como movimento 
 significativo em um período e como oscilação em outro, de modo que a proporção de cada símbolo varia com o período analisado. 
 
 Em particular, o conjunto de teste, que contém os dados mais recentes, passa a ter uma distribuição de símbolos diferente da 
@@ -1168,7 +1173,7 @@ bloco da série serve apenas de referência, sem gerar símbolos.
 
 Este trabalho adota o limiar adaptativo como método principal e o limiar fixo, estimado apenas sobre o conjunto de treinamento, 
 como referência na análise de sensibilidade. Os parâmetros adotados, como a duração dos blocos, a divisão entre 
-treinamento e teste e o tratamento de lacunas na série, são descritos no Capítulo~\ref{cap:desenvolvimento}.
+treinamento e teste e o tratamento de lacunas na série, são descritos no Capítulo \ref{cap:desenvolvimento}.
 
 
 \subsubsection{Granularidade e viabilidade estatística}
@@ -1433,7 +1438,7 @@ na revisão bibliográfica discutida no Capítulo \ref{cap:revisao}.
 A solução proposta consiste em um conjunto de modelos que preveem o próximo símbolo da série discretizada do Bitcoin, 
 em janelas de cinco minutos, a partir dos símbolos anteriores. Duas famílias de modelos são avaliadas, Cadeias de Markov de alta ordem, 
 segundo a formulação de Mistura de Distribuições de Transição (MTD) proposta por \citeonline{RAFTERY1985}, 
-ajustadas com ordens de 1 a 10; e os Modelos Ocultos de Markov (HMM), ajustados com 2 a 5 estados ocultos 
+ajustadas com ordens de 1 a 10; e os Modelos Ocultos de Markov (HMM), ajustados com 3 estados ocultos 
 pelo algoritmo de Baum-Welch.
 
 Para verificar se esses modelos oferecem ganho preditivo real, seu desempenho é 
@@ -1448,16 +1453,13 @@ comparado ao de quatro modelos de referência:
 
 Todos os modelos operam sobre a mesma série discreta, obtida pela discretização 
 dos retornos logarítmicos em um alfabeto de três símbolos ($-1$, $0$ e $1$) com limiar adaptativo, 
-conforme a estratégia apresentada na Seção \ref{discretizacao}. 
-A sensibilidade dos resultados à discretização é avaliada com os limiares $s/4$ e $s/5$ e com o limiar fixo. 
+conforme a estratégia apresentada na Seção \ref{discretizacao}.  
 Os modelos são ajustados sobre o conjunto de treinamento e avaliados sobre o conjunto de teste, 
 sempre prevendo um passo à frente com base apenas nos símbolos anteriores.
 
 A avaliação segue o critério definido na Seção \ref{avaliacao}: matriz de confusão, precisão, 
-\textit{recall} e F1 das classes direcionais ($-1$ e $1$). 
-
-Essas métricas são complementadas pela log-verossimilhança e pela AUC, que avaliam as probabilidades 
-previstas sem depender da regra de decisão adotada.
+\textit{recall} e F1 das classes direcionais ($-1$ e $1$), essas métricas são complementadas pela log-verossimilhança e pelo BIC, 
+que avaliam as probabilidades previstas sem depender da regra de decisão adotada.
 
 \section{Pipeline da solução}
 
@@ -1986,13 +1988,13 @@ O ajuste de um HMM pelo algoritmo de Baum-Welch exige, a cada iteração, percor
 uma com o algoritmo \textit{Forward} e outra com o \textit{Backward}, além de acumular as contagens 
 esperadas de transições e emissões. O custo de cada iteração cresce linearmente com o tamanho $T$ da série 
 e com o quadrado do número $N$ de estados \cite{Rabiner1989}. Com $T$ próximo de $900$ mil símbolos, centenas a milhares de 
-iterações por ajuste e dezenas de reinícios, uma implementação com laços em 
+iterações por ajuste e 10 de reinícios, uma implementação com laços em 
 Python puro tornaria os experimentos inviáveis.
 
 Por isso, o HMM foi implementado com a biblioteca Numba \cite{lam2015numba}, que compila funções escritas em 
 Python para código de máquina no momento da primeira execução (compilação \textit{just-in-time}). 
 Os laços que concentram o custo computacional foram escritos como funções compiladas, chamadas aqui de \textit{kernels}, 
-apresentadas no \autoref{tab:kernels_hmm}. 
+apresentadas na \autoref{tab:kernels_hmm}. 
 
 \begin{table}[htbp]
     \centering
@@ -2013,7 +2015,7 @@ apresentadas no \autoref{tab:kernels_hmm}.
     \fonte{Elaborado pelos autores (2026).}
 \end{table}
 
-\paragraph{Estabilidade numérica.} As probabilidades calculadas pelos algoritmos \textit{Forward} e \textit{Backward} 
+\subsubsection{Estabilidade numérica.} As probabilidades calculadas pelos algoritmos \textit{Forward} e \textit{Backward} 
 são produtos de termos menores que um e em séries longas, ficam menores do que o menor 
 número representável pelo computador \cite{Rabiner1989,jm3}. Para evitar isso, a implementação adota o escalonamento 
 descrito por \citeonline{Rabiner1989}. As probabilidades do \textit{Forward} são normalizadas para somar um, 
@@ -2021,13 +2023,13 @@ e o fator usado na normalização é guardado.
 A log-verossimilhança da sequência é obtida pela soma dos logaritmos desses fatores, e o \textit{Backward} é 
 escalonado com os mesmos fatores, de modo que eles se cancelam no cálculo das contagens esperadas do passo E \cite{Rabiner1989}. 
 
-\paragraph{Inicialização e parada.} Cada reinício parte de valores de $\pi$, $A$ e $B$ sorteados aleatoriamente, com uma semente 
+\subsubsection{Inicialização e parada.} Cada reinício parte de valores de $\pi$, $A$ e $B$ sorteados aleatoriamente, com uma semente 
 própria, o que permite reproduzir exatamente cada ajuste. O Baum-Welch é interrompido quando a log-verossimilhança apresenta uma 
-melhora relativa abaixo de $10^{-8}$. Para que nenhuma probabilidade se torne exatamente zero, um valor mínimo 
+melhora relativa abaixo de $10^{-8}$ ou ao atingir $1.000$ iterações. Para que nenhuma probabilidade se torne exatamente zero, um valor mínimo 
 de $10^{-10}$ é imposto às células de $A$ e $B$ \cite{Rabiner1989}.  Ao final, mantém-se o reinício de maior 
 log-verossimilhança no conjunto de treinamento.
 
-\paragraph{Limitações da implementação.} A série de treinamento é tratada como uma única sequência contínua e as 
+\subsubsection{Limitações da implementação.} A série de treinamento é tratada como uma única sequência contínua e as 
 transições entre os segmentos separados por lacunas são contadas como se os instantes fossem vizinhos. Como as 
 lacunas afetam uma fração muito pequena das transições, esse efeito é desprezível, mas é registrado como limitação. 
 Além disso, o Numba não verifica se os índices acessados estão dentro dos limites dos vetores e por isso, a 
@@ -2083,74 +2085,65 @@ HMM em janelas curtas de dados.
 \subsection{Avaliação fora da amostra}
 \label{sec:avaliacao_fora}
 
-Todos os modelos foram ajustados sobre os primeiros $95\%$ da série e avaliados sobre os $5\%$ mais recentes, que nunca foram usados no ajuste. 
-Na discretização principal, o conjunto de treinamento tem 905.654 símbolos, de setembro de 2017 a abril de 2026, e o conjunto de teste tem 47.893 símbolos, 
-cobrindo 167 dias entre abril e setembro de 2026, sem lacunas.
+Todos os modelos foram ajustados sobre os primeiros $95\%$ dos \textit{candles} e avaliados sobre os $5\%$ mais recentes, que nunca foram usados no ajuste. 
+Na configuração principal (modo \textit{Blocks}, blocos de 1 mês e limiar $s/3$), o conjunto de treinamento tem 905.654 símbolos e o conjunto de 
+teste tem 47.893 símbolos, de 17 de abril a 30 de setembro de 2026, sem lacunas.
 
-Em cada instante do teste, cada modelo prevê o símbolo seguinte usando apenas os símbolos anteriores, ou seja, faz uma previsão de um passo à frente. 
-A previsão não é um único símbolo, mas uma probabilidade para cada um dos três símbolos. No início do teste, os modelos usam como passado os últimos símbolos do treinamento. 
-No HMM, as probabilidades dos estados no primeiro instante do teste partem da distribuição estacionária da matriz $A$, que indica a fração do tempo que o 
-modelo passa em cada estado no longo prazo. Para que as ordens do MTD sejam comparáveis entre si, todas são avaliadas exatamente sobre os mesmos instantes.
+Para que as log-verossimilhanças e o BIC sejam comparáveis entre os modelos, todos são avaliados sobre as mesmas transições: no treinamento, a 
+partir da décima posição, que é a primeira com contexto completo para o MTD de ordem 10; no teste, em todas as posições, com o contexto vindo do fim do treinamento.
+
+Em cada instante, cada modelo atribui uma probabilidade a cada um dos três símbolos usando apenas os símbolos anteriores. 
+No HMM, essa previsão é feita pelo filtro \textit{forward} (Seção~\ref{sec:filtro_forward}): as probabilidades dos estados no instante anterior 
+são projetadas um passo à frente pela matriz $A$ e convertidas em probabilidades de símbolo pela matriz $B$. O filtro percorre o treinamento e o teste em sequência, 
+de modo que o teste começa com o estado estimado ao fim do treinamento.
 
 A partir dessas previsões, são calculadas as métricas descritas na Seção~\ref{avaliacao}:
 \begin{itemize}
-    \item a log-verossimilhança por símbolo e o BIC.
-    \item o acerto de direção, isto é, a fração dos movimentos de alta ou de queda em que o modelo deu mais probabilidade ao sinal correto, 
-    com intervalo de confiança de $95\%$.
-    \item a matriz de confusão, a precisão, o \textit{recall} e o F1 das classes $-1$ e $1$.
+    \item a log-verossimilhança por símbolo e o BIC, comparáveis apenas dentro de uma mesma configuração de discretização.
+    \item a acurácia, comparada à de um modelo que prevê sempre o símbolo $0$.
+    \item a precisão, o \textit{recall} e o F1 de cada classe e a matriz de confusão, tomando como palpite o símbolo de maior probabilidade. 
+    O F1 direcional é a média do F1 das classes $-1$ e $1$.
+    \item o acerto de direção: entre os \textit{candles} do teste que se moveram, a fração em que o modelo deu mais probabilidade ao sinal 
+    correto do que ao oposto, com intervalo de confiança de Wilson de $95\%$. Ele é comparado ao da melhor constante, isto é, ao maior acerto obtido prevendo sempre $+1$ ou sempre $-1$.
 \end{itemize}
-
-As métricas de classificação exigem transformar as probabilidades em um único palpite. Para isso, são usadas duas regras de decisão: escolher o símbolo 
-de maior probabilidade, e escolher o símbolo cuja probabilidade prevista mais supera a sua frequência no conjunto de treinamento. A segunda regra compensa o 
-fato de o símbolo $0$ ser o mais frequente, o que faria a primeira regra prevê-lo quase sempre.
 
 \subsection{Cenários}
 \label{sec:cenarios}
 
-Os experimentos foram organizados nos cenários da \autoref{tab:cenarios}. O cenário principal compara todos os modelos na discretização principal. 
-Os demais verificam se as conclusões se mantêm quando a discretização, o período de teste ou a quantidade de dados de treinamento mudam.
+Cada experimento é uma configuração de discretização, definida pelo modo, pelo tamanho do bloco e pelo limiar $s/k$. A \autoref{tab:cenarios} resume as 
+configurações avaliadas. Em todas elas, os mesmos modelos são ajustados e comparados.
 
 \begin{table}[htbp]
     \centering
-    \caption{Cenários experimentais.}
+    \caption{Configurações experimentais.}
     \label{tab:cenarios}
     \small
-    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.22\textwidth}>{\raggedright\arraybackslash}p{0.44\textwidth}>{\raggedright\arraybackslash}p{0.28\textwidth}@{}}
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.3\textwidth}>{\raggedright\arraybackslash}p{0.64\textwidth}@{}}
         \toprule
-        \textbf{Cenário} & \textbf{O que varia} & \textbf{Modelos} \\
+        \textbf{Parâmetro} & \textbf{Valores} \\
         \midrule
-        Principal & Limiar adaptativo, $s/3$, blocos de 1 mês & Referências, MTD de ordem 1 a 10, HMM de 2 a 5 estados \\
-        Sensibilidade à discretização & Limiares $s/4$ e $s/5$; limiar fixo com $s/3$, $s/4$ e $s/5$; blocos de 3 meses & Referências, 
-        MTD (exceto blocos de 3 meses) e HMM de 2 a 4 estados \\
-        Estabilidade no tempo & Treinamento em 12 meses e teste nos 3 meses seguintes, em 32 janelas entre 2018 e 2026 & Frequências, 
-        cadeia de primeira ordem e HMM de 3 estados \\
-        Quantidade de dados & Treinamento apenas nos últimos 2 mil a 905 mil símbolos & Frequências, cadeia de primeira ordem e HMM de 2 a 4 estados \\
+        Modo de discretização & \textit{Global}; \textit{Blocks} com blocos de 1, 2, 3, 6 e 12 meses \\
+        Limiar & $s/k$, com $k$ de 1 a 10 \\
+        Total de configurações & 60 \\
+        Modelos & Aleatório, frequências, persistência, cadeia de primeira ordem, MTD de ordem 1 a 10 e HMM de 3 estados \\
+        Configurações detalhadas & \textit{Blocks} com 1 mês e $s/3$ (principal) e \textit{Global} com $s/3$ \\
         \bottomrule
     \end{tabular}
     \fonte{Elaborado pelos autores (2026).}
 \end{table}
 
-No MTD, o EM foi executado com tolerância de $10^{-8}$ e cinco reinícios por ordem. No HMM, foram usados 20, 50, 40 e 30 reinícios para 2, 3, 4 e 5 estados, 
-respectivamente, com limite de 3.000 iterações, ou 4.000 no modelo de 5 estados. Cada reinício foi executado em um processo separado, com uma única \textit{thread}, 
-e vários processos foram executados ao mesmo tempo. Os experimentos foram realizados em um computador com processador 
-Intel Core i5-1334U e 7,6 GB de memória, com Python 3.14, NumPy 2.5 e Numba 0.68.
+O HMM foi ajustado com 3 estados ocultos em cada configuração, com 10 reinícios, tolerância relativa de $10^{-8}$, limite de 1.000 iterações e semente-base 0. 
+Os parâmetros do MTD estão descritos na Seção~\ref{sec:mtd}.
 
 \subsection{Critérios de aceitação das hipóteses}
 \label{sec:criterios}
 
-Para que as hipóteses da Seção \ref{sec:hipotese} pudessem ser testadas de forma objetiva, cada uma foi associada a um critério mensurável no conjunto de teste.
+\subsubsection{Hipótese principal.} A hipótese é aceita se o MTD, na ordem de menor BIC, obtiver F1 direcional superior ao do modelo aleatório e ao do modelo de persistência, 
+e acerto de direção com intervalo de confiança acima do acerto desses modelos. A ordem de menor BIC indica até onde a memória da série contribui para o ajuste.
 
-\paragraph{Hipótese principal.} A hipótese é aceita se o MTD, na ordem escolhida pelo BIC, obtiver F1 direcional, isto é, a média do F1 das 
-classes $-1$ e $1$, superior ao do modelo aleatório e ao do modelo de persistência, com diferença significativa pelo \textit{bootstrap} por dias. 
-A ordem a partir da qual a dependência temporal se torna relevante é a menor ordem cujo ganho de log-verossimilhança sobre a ordem anterior é significativo.
+\subsubsection{Hipótese secundária.} A hipótese é aceita se o HMM obtiver log-verossimilhança no teste maior e BIC no treinamento menor que os do MTD e os da cadeia de primeira 
+ordem, sem perda no F1 direcional e no acerto de direção. O custo computacional é avaliado pelo tempo de ajuste de cada modelo, para julgar se o ganho obtido justifica a maior complexidade.
 
-\paragraph{Hipótese secundária.} A hipótese é aceita se o HMM obtiver log-verossimilhança no teste significativamente maior que a do MTD e a da cadeia de 
-primeira ordem, e F1 direcional pelo menos igual ao deles. O custo computacional é avaliado pelo tempo de ajuste de cada modelo, para julgar se o 
-ganho obtido justifica a maior complexidade.
-
-Além dos modelos previstos nas hipóteses, os resultados também são comparados com o modelo de frequências e com a cadeia de primeira ordem. 
-Essas referências são mais exigentes e permitem verificar se uma eventual vantagem sobre o modelo aleatório e o de persistência indica, de fato, 
-capacidade de prever a direção do próximo movimento.
 
 %3.5.4
 \subsection{Ambiente e reprodutibilidade}
@@ -2207,42 +2200,380 @@ derivada de uma semente-base, o que torna os resultados repetíveis. O repositó
 \section{Resultados e análises}
 \label{sec:resultados}
 
-Apresente os resultados com tabelas, gráficos e figuras e, sobretudo, \textbf{analise-os} à luz da revisão bibliográfica e da hipótese --- resultados devem ser analisados, não apenas exibidos. Diferencie:
-\begin{itemize}
-  \item \textbf{Figura:} imagens, diagramas conceituais ou arquiteturais que ilustram estrutura ou fluxo.
-  \item \textbf{Gráfico:} plot de dados (linhas, barras, boxplots) que compara métricas obtidas.
-\end{itemize}
+\subsection{Modelo Oculto de Markov}
+\label{sec:res_hmm}
 
-Exemplo de tabela:
-\begin{table}[htb]
-  \centering
-  \caption{Comparação de métricas reportadas}
-  \label{tab:metricas}
-  \begin{tabular}{lcc}
-    \toprule
-    Método & Acurácia & Tempo médio (ms) \\
-    \midrule
-    Proposta & 92\% & 180 \\
-    Baseline & 88\% & 220 \\
-    \bottomrule
-  \end{tabular}
-  \legend{Fonte: Elaborado pelo autor (2025)}
+\subsubsection{Ajuste e comparação com os modelos de referência}
+\label{sec:res_hmm_ajuste}
+
+A \autoref{tab:res_hmm_ll} compara o HMM de 3 estados com os modelos de referência na configuração principal (modo \textit{Blocks}, blocos de 1 mês e limiar $s/3$). 
+
+\begin{table}[htbp]
+    \centering
+    \caption{Log-verossimilhança e BIC dos modelos de referência e do HMM na configuração principal.}
+    \label{tab:res_hmm_ll}
+    \small
+    \begin{tabular}{@{}lrrrr@{}}
+        \toprule
+        \textbf{Modelo} & \textbf{Parâmetros} & \textbf{LL/símbolo} & \textbf{LL/símbolo} & \textbf{BIC} \\
+         & & \textbf{(treino)} & \textbf{(teste)} & \textbf{(treino)} \\
+        \midrule
+        Uniforme & 0 & $-1{,}09861$ & $-1{,}09861$ & --- \\
+        Frequências & 2 & $-1{,}08106$ & $-1{,}07534$ & 1.958.146,0 \\
+        Persistência & 0 & $-2{,}81962$ & $-2{,}74315$ & --- \\
+        Cadeia de 1ª ordem & 6 & $-1{,}06778$ & $-1{,}05997$ & 1.934.137,9 \\
+        % MTD (ordem de menor BIC) & ... & ... & ... & ... \\
+        HMM de 3 estados & 14 & $\mathbf{-1{,}02569}$ & $\mathbf{-1{,}01545}$ & \textbf{1.858.005,0} \\
+        \bottomrule
+    \end{tabular}
+    \fonte{Elaborado pelos autores (2026).}
 \end{table}
 
-Ao inserir um gráfico (por exemplo \texttt{assets/figures/desempenho.png}), use --- lembrando que, pela ABNT, o \texttt{\textbackslash caption} (título) vem \textbf{acima} da imagem e a fonte (\texttt{\textbackslash legend}) vem \textbf{abaixo}:
-\begin{verbatim}
-\begin{figure}[htb]
-  \centering
-  \caption{Gráfico de comparação das métricas de acurácia.}
-  \label{fig:grafico-desempenho}
-  \includegraphics[width=0.8\textwidth]{assets/figures/desempenho.png}
-  \legend{Fonte: Elaborado pelo autor (2025)}
+O modelo uniforme (aleatório) obteve log-verossimilhança por símbolo de $\ln(1/3) \approx -1{,}0986$,
+o modelo de frequências obteve resultados parecidos, uma vez que a distribuição das movimentações (28,78\%, 42,33\% e 28,89\%) esta próxima a $1/3$, em comparacao, 
+o modelo de persistência obteve a menor log-verossimilhança, com $\varepsilon = 0{,}01$, atribuiu $98\%$ de probabilidade à repetição do último símbolo.
+
+A cadeia de primeira ordem obteve $0{,}01538$ nats por símbolo, superior ao modelo de frequências, o que indica que o símbolo anterior possue relevância para o simbolo observado, em comparação
+o HMM obtem $0{,}0599$ nats, aproximadamente quatro vezes mais,a diferença é de $0{,}0445$ nats por símbolo, o que significa que o HMM atribui,
+em média, cerca de $4{,}5\%$ mais probabilidade ao símbolo que de fato ocorreu. Somada sobre os 47.893 símbolos do teste, essa diferença chega a cerca de 2.130 nats.
+
+O BIC confirma essa ordem. O HMM tem 8 parâmetros a mais que a cadeia de primeira ordem, mas cerca de 905 mil transições de treinamento, a penalidade do 
+BIC \cite{RAFTERY1985} é de $\ln(905.644) \approx 13{,}7$ por parâmetro, pequena diante da melhora no ajuste. O HMM obteve o menor BIC não só nesta configuração, mas em todas as 
+60 configurações avaliadas.
+
+Em todos os modelos ajustados aos dados a log-verossimilhança no teste é ligeiramente melhor que no treinamento. 
+O HMM, portanto, não apresenta sobreajuste (\textit{overfitting}) aos dados de treinamento \cite{JAMES2021}, o desempenho se mantém, 
+possuindo uma pequena melhora em um período que o modelo nunca viu. 
+
+\subsubsection{Regimes identificados}
+\label{sec:res_hmm_regimes}
+
+Os três estados foram ordenados pela probabilidade de emitir o símbolo $0$ e nomeados como calmo, intermediário e agitado. 
+A \autoref{tab:res_hmm_estados} apresenta a matriz de emissão $B$, a duração média de cada estado, calculada como $1/(1 - a_{ii})$ \cite{Rabiner1989}
+passos de cinco minutos, e a fração do tempo que o modelo passa em cada um no longo prazo, dada pela distribuição de $A$.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Estados do HMM de 3 estados na configuração principal.}
+    \label{tab:res_hmm_estados}
+    \small
+    \begin{tabular}{@{}lrrrrr@{}}
+        \toprule
+        \textbf{Estado} & \textbf{$P(-1)$} & \textbf{$P(0)$} & \textbf{$P(+1)$} & \textbf{Duração média} & \textbf{Fração do tempo} \\
+        \midrule
+        Calmo         & 11,41\% & 76,71\% & 11,88\% & 366 min (6,1 h)  & 16,02\% \\
+        Intermediário & 26,71\% & 46,19\% & 27,10\% & 482 min (8,0 h)  & 48,51\% \\
+        Agitado       & 39,46\% & 21,51\% & 39,03\% & 624 min (10,4 h) & 35,47\% \\
+        \bottomrule
+    \end{tabular}
+    \fonte{Elaborado pelos autores (2026).}
+\end{table}
+
+Os três estados diferem na chance de o preço sair da faixa central, e não na direção do movimento. No estado calmo, $77\%$ dos \textit{candles} emitem o 
+símbolo $0$, no agitado, apenas $22\%$. Em todos eles, porém, as probabilidades de queda e de alta são praticamente iguais, com diferença de no máximo $0{,}5$ 
+ponto percentual. O modelo identificou a separar períodos de mercado calmo de períodos de mercado agitado, mas não períodos de alta de períodos de queda. 
+Os estados ocultos correspondem a regimes de volatilidade, e não a tendências de preço.
+
+Os regimes são persistentes, cada estado dura, em média, de 6 a 10 horas, ou seja, de 73 a 125 \textit{candles} consecutivos,
+o que indica que períodos agitados tendem a ser seguidos por períodos agitados, e períodos calmos, por períodos calmos.
+
+A \autoref{tab:res_hmm_transicao} apresenta a matriz de transição $A$, com os estados na mesma ordem.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Matriz de transição $A$ do HMM na configuração principal (linha: estado atual, coluna: próximo estado).}
+    \label{tab:res_hmm_transicao}
+    \small
+    \begin{tabular}{@{}lrrr@{}}
+        \toprule
+        \textbf{De \textbackslash{} para} & \textbf{Calmo} & \textbf{Intermediário} & \textbf{Agitado} \\
+        \midrule
+        Calmo         & 0,9864 & 0,0136 & 0,0000 \\
+        Intermediário & 0,0045 & 0,9896 & 0,0059 \\
+        Agitado       & 0,0000 & 0,0080 & 0,9920 \\
+        \bottomrule
+    \end{tabular}
+    \fonte{Elaborado pelos autores (2026).}
+\end{table}
+
+A matriz demonstra uma relação de persistencia nos regimes, ilustrada na \autoref{fig:res_hmm_escada}. As transições diretas entre os estados calmo e agitado 
+têm probabilidade praticamente nula, para passar de um ao outro, o mercado atravessa sempre o regime intermediário. Assim, segundo o modelo, a 
+volatilidade aumenta e diminui de forma gradual, e não em saltos.
+
+\begin{figure}[htbp]
+    \centering
+    \caption{Estrutura em escada dos regimes do HMM na configuração principal.}
+    \label{fig:res_hmm_escada}
+    \begin{tikzpicture}[
+        node distance=3.2cm,
+        estado/.style={circle, draw=black, line width=0.9pt, fill=gray!6, minimum size=2.3cm, align=center, font=\small},
+        seta/.style={line width=0.9pt, -{Stealth[length=2.5mm, width=2mm]}},
+        rot/.style={font=\scriptsize}
+        ]
+        \node (c) [estado] {Calmo\\[2pt]\scriptsize $P(0) = 77\%$};
+        \node (i) [estado, right=of c] {Intermediário\\[2pt]\scriptsize $P(0) = 46\%$};
+        \node (a) [estado, right=of i] {Agitado\\[2pt]\scriptsize $P(0) = 22\%$};
+
+        \draw [seta] (c) to [bend left=20] node [rot, above] {0,0136} (i);
+        \draw [seta] (i) to [bend left=20] node [rot, below] {0,0045} (c);
+        \draw [seta] (i) to [bend left=20] node [rot, above] {0,0059} (a);
+        \draw [seta] (a) to [bend left=20] node [rot, below] {0,0080} (i);
+
+        \draw [seta] (c) to [out=110, in=70, looseness=4] node [rot, above] {0,9864} (c);
+        \draw [seta] (i) to [out=110, in=70, looseness=4] node [rot, above] {0,9896} (i);
+        \draw [seta] (a) to [out=110, in=70, looseness=4] node [rot, above] {0,9920} (a);
+    \end{tikzpicture}
+    \fonte{Elaborado pelos autores (2026).}
 \end{figure}
-\end{verbatim}
 
-Na sequência, faça a \textbf{análise crítica e comparação}, discutindo as descobertas em relação aos trabalhos correlatos e evidenciando ganhos e perdas; por fim, na \textbf{discussão}, relacione os resultados aos objetivos e à hipótese, explicitando se o critério de sucesso foi atingido.
+No longo prazo, o modelo passa quase metade do tempo no regime intermediário ($48{,}5\%$), um terço no agitado ($35{,}5\%$) e o 
+restante no calmo ($16{,}0\%$). Combinando essas frações com as probabilidades de emissão, obtém-se a proporção de longo prazo de cada símbolo, 
+de $28{,}78\%$, $42{,}33\%$ e $28{,}89\%$, exatamente as proporções observadas no treinamento. Isso indica que o ajuste reproduz corretamente a 
+distribuição dos dados.
 
-\textit{O desenvolvimento só é pesquisa se estiver claramente ligado ao problema e à metodologia definida.}
+A mesma estrutura aparece na configuração de discretização \textit{Global} com limiar $s/3$, três regimes com probabilidades de queda e de alta praticamente iguais, 
+durações de 6 a 10 horas e transições diretas nulas entre os regimes extremos. Os regimes não são, portanto, um efeito da discretização adotada. 
+Esse resultado responde à primeira parte da hipótese secundária, o HMM de fato infere estados não observáveis com significado de mercado, em 
+linha com trabalhos que usam HMMs para identificar regimes no merca do de Bitcoin \cite{malekinezhad2026}. Resta verificar se esses regimes se 
+traduzem em capacidade de prever a direção do próximo movimento, o que é analisado na Seção \ref{sec:res_quando_onde}.
+
+\subsubsection{Estabilidade do ajuste}
+\label{sec:res_hmm_estabilidade}
+
+O algoritmo de Baum-Welch pode parar em ótimos locais, e por isso cada configuração foi ajustada com 10 reinícios.
+A \autoref{tab:res_hmm_reinicios} mostra o resultado de cada reinício na configuração principal (modo Blocks, blocos de 1 mês e limiar s/3). 
+Considera-se que um reinício chegou à melhor solução quando sua log-verossimilhança de treinamento fica a menos de 1 nat da maior obtida.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Resultado dos 10 reinícios do HMM na configuração principal.}
+    \label{tab:res_hmm_reinicios}
+    \small
+    \begin{tabular}{@{}crrrc@{}}
+        \toprule
+        \textbf{Reinício} & \textbf{LL de treino} & \textbf{Abaixo do melhor (nats)} & \textbf{Iterações} & \textbf{Convergiu} \\
+        \midrule
+        0 & $-928.915{,}3$ & 0,41 & 242 & sim \\
+        1 & $-928.915{,}3$ & 0,41 & 221 & sim \\
+        2 & $-936.832{,}5$ & 7.917,59 & 1.000 & não \\
+        3 & $-936.837{,}7$ & 7.922,78 & 1.000 & não \\
+        4 & $-936.814{,}1$ & 7.899,19 & 1.000 & não \\
+        5 & $-936.824{,}7$ & 7.909,83 & 1.000 & não \\
+        6 & $-936.817{,}5$ & 7.902,60 & 1.000 & não \\
+        7 & $-936.808{,}9$ & 7.893,95 & 1.000 & não \\
+        8 & $-936.830{,}5$ & 7.915,56 & 1.000 & não \\
+        \textbf{9} & $\mathbf{-928.914{,}9}$ & \textbf{0,00} & \textbf{265} & \textbf{sim} \\
+        \bottomrule
+    \end{tabular}
+    \fonte{Elaborado pelos autores (2026).}
+\end{table}
+
+Os reinícios se dividem em dois grupos bem separados. Três deles (0, 1 e 9) convergiram em menos de 270 iterações para praticamente a mesma solução, a de 
+maior log-verossimilhança. Os outros sete pararam no limite de 1.000 iterações, cerca de 7.900 nats abaixo, sem convergir. A diferença entre os grupos 
+não é um pequeno erro numérico: corresponde a soluções diferentes, e piores, para os mesmos dados. Com um único ajuste, a chance de obter o modelo da 
+segunda solução seria de $70\%$ nesta configuração, o que confirma a necessidade dos reinícios.
+
+Nas 60 configurações, o número de reinícios que chegaram à melhor solução variou de 1 a 7, com mediana de 3. O melhor reinício convergiu antes do 
+limite de iterações em todas elas. Em 7 configurações, porém, apenas um dos 10 reinícios encontrou a melhor solução. Nesses casos, não se pode 
+descartar a existência de uma solução ainda melhor que nenhum reinício encontrou, o que é uma limitação do ajuste.
+
+Por fim, duas verificações confirmam a consistência dos números relatados. A log-verossimilhança de treinamento recalculada pelo filtro \textit{forward} difere da 
+registrada no ajuste em no máximo $5{,}92 \times 10^{-7}$ nats, em todas as configurações. Além disso, as transições logo após as lacunas da série, 
+que o HMM trata como se fossem consecutivas (Seção~\ref{sec:hmm_numba}), têm efeito desprezível, são 34 transições na configuração principal, e excluí-las 
+altera a log-verossimilhança por símbolo em no máximo $0{,}000017$ nats.
+
+\subsection{``Quando'' \texorpdfstring{$\times$}{x} ``para onde''}
+\label{sec:res_quando_onde}
+
+\subsubsection{Previsão de movimento no HMM}
+\label{sec:res_movimento}
+
+A previsão do próximo símbolo pode ser decomposta em duas perguntas, se o preço vai sair da faixa central, isto é, 
+se haverá movimento ($-1$ ou $+1$) ou não ($0$), e, havendo movimento, para qual lado. trataremos da primeira pergunta. 
+Para isso, os símbolos $-1$ e $+1$ são agrupados em uma única classe, \textit{movimento}, e a precisão e o \textit{recall} \cite{POWERS2020} 
+são calculados para essa classe, tendo como estratégia escolher o símbolo de maior probabilidade. No conjunto de teste da configuração principal, 
+$56{,}17\%$ dos \textit{candles} tiveram movimento e $43{,}83\%$ ficaram parados. A \autoref{tab:res_movimento} apresenta os resultados.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Previsão de movimento no conjunto de teste da configuração principal.}
+    \label{tab:res_movimento}
+    \small
+    \begin{tabular}{@{}lrrrr@{}}
+        \toprule
+        \textbf{Modelo} & \textbf{Previu} & \textbf{Precisão do} & \textbf{\textit{Recall} do} & \textbf{Acurácia} \\
+         & \textbf{movimento} & \textbf{movimento} & \textbf{movimento} & \\
+        \midrule
+        Sempre 0 & 0,00\% & --- & 0,00\% & 43,83\% \\
+        Cadeia de 1ª ordem & 0,00\% & --- & 0,00\% & 43,83\% \\
+        HMM de 3 estados & 32,33\% & 73,94\% & 42,56\% & 47,61\% \\
+        \bottomrule
+    \end{tabular}
+    \fonte{Elaborado pelos autores (2026).}
+\end{table}
+
+O HMM prevê movimento em $32\%$ dos instantes. Quando o faz, acerta em $73{,}94\%$ das vezes, bem acima dos $56{,}17\%$ que se obteriam 
+escolhendo instantes ao acaso. Ele também acerta mais quando prevê o $0$, nesses casos, o preço de fato fica parado em $52{,}32\%$ das vezes, 
+contra os $43{,}83\%$ da média do teste. O \textit{recall} de $42{,}56\%$ mostra, por outro lado, que o modelo antecipa menos da metade dos movimentos, 
+ele só aposta em movimento quando há sinais claros de que o mercado está agitado.
+
+Esse comportamento decorre diretamente dos regimes descritos na Seção \ref{sec:res_hmm_regimes}. O filtro \textit{forward} \cite{Rabiner1989} 
+acompanha, a cada \textit{candle}, a probabilidade de o mercado estar em cada regime. Quando o regime agitado se torna o mais provável, 
+a probabilidade do símbolo $0$ cai, já que nesse regime ela é de apenas $22\%$, e o modelo passa a prever movimento. Como os regimes duram horas, 
+o fato de o mercado estar agitado agora é um bom indicador de que continuará agitado no próximo \textit{candle}.
+
+\subsubsection{Previsão de direção no HMM}
+\label{sec:res_direcao}
+
+O acerto de direção considera apenas os \textit{candles} do teste que de fato se moveram, 26.903 na configuração principal, e verifica se o modelo deu mais probabilidade ao 
+sinal correto do que ao oposto, ignorando o símbolo $0$. O resultado é comparado ao da melhor constante, isto é, à estratégia de prever sempre 
+o sinal mais frequente no teste, que neste período é a queda. A \autoref{tab:res_direcao} apresenta os resultados, com intervalos de confiança de Wilson de $95\%$.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Acerto de direção no conjunto de teste da configuração principal.}
+    \label{tab:res_direcao}
+    \small
+    \begin{tabular}{@{}lrc@{}}
+        \toprule
+        \textbf{Modelo} & \textbf{Acerto de direção} & \textbf{IC 95\%} \\
+        \midrule
+        Persistência & 48,79\% & 48,19\% a 49,38\% \\
+        HMM de 3 estados & 50,13\% & 49,53\% a 50,73\% \\
+        Melhor constante (sempre $-1$) & 50,86\% & --- \\
+        Cadeia de 1ª ordem & 51,21\% & 50,62\% a 51,81\% \\
+        \bottomrule
+    \end{tabular}
+    \fonte{Elaborado pelos autores (2026).}
+\end{table}
+
+O acerto de direção do HMM é de $50{,}13\%$, e seu intervalo de confiança inclui os $50\%$ de uma escolha ao acaso. Ele fica abaixo da melhor 
+constante e da cadeia de primeira ordem. O que indica que saber em qual regime o mercado está não garante ao HMM a capacidade de identificar a direção do proximo fechamento.
+Esse resultado é coerente com a estrutura dos regimes (Seção~\ref{sec:res_hmm_regimes}), em todos eles, as probabilidades
+de queda e de alta são praticamente iguais.
+
+A cadeia de primeira ordem obtém o maior acerto, $51{,}21\%$, com intervalo de confiança acima de $50\%$. Sua vantagem sobre a melhor constante, 
+porém, é de apenas $0{,}35$ ponto percentual. O modelo de persistência, fica abaixo de $50\%$. 
+
+A matriz de confusão do HMM, na \autoref{tab:res_confusao}, mostra o mesmo resultado de outra forma.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Matriz de confusão do HMM no conjunto de teste da configuração principal (linha: símbolo real, coluna: símbolo previsto).}
+    \label{tab:res_confusao}
+    \small
+    \begin{tabular}{@{}lrrrr@{}}
+        \toprule
+        \textbf{Real \textbackslash{} Previsto} & \textbf{$-1$} & \textbf{$0$} & \textbf{$+1$} & \textbf{Total} \\
+        \midrule
+        $-1$ & 5.849 & 7.833 & 0 & 13.682 \\
+        $0$  & 4.035 & 16.955 & 0 & 20.990 \\
+        $+1$ & 5.600 & 7.621 & 0 & 13.221 \\
+        \bottomrule
+    \end{tabular}
+    \fonte{Elaborado pelos autores (2026).}
+\end{table}
+
+O HMM nunca prevê o símbolo $+1$: sempre que aposta em movimento, aposta em queda. Isso ocorre porque, no regime agitado, a probabilidade de queda 
+supera a de alta por apenas $0{,}4$ ponto percentual (Tabela \ref{tab:res_hmm_estados}), uma diferença pequena o bastante para ser atribuída à 
+própria estimação, mas suficiente para que a queda seja sempre o símbolo de movimento mais provável. Além disso, as linhas $-1$ e $+1$ da 
+matriz são praticamente iguais, o modelo prevê $-1$ em $42{,}75\%$ das quedas reais e em $42{,}36\%$ das altas reais. 
+Ele não distingue uma alta de uma queda, apenas identifica os momentos em que algum movimento é provável.
+
+O HMM obtém precisão de $37{,}77\%$, \textit{recall} de $42{,}75\%$ e F1 de $0{,}401$, para a classe $+1$, o F1 é zero, pois ela nunca é prevista.
+A cadeia de primeira ordem, tem F1 direcional igual a zero. O valor do HMM, embora maior, não indica capacidade de prever a direção, uma vez que 
+seu F1 provem inteiramente da classe $-1$, cuja precisão 
+reflete o acerto do \textit{momento} do movimento, e não do seu sentido. Se o modelo tivesse previsto $+1$ nos mesmos instantes, 
+sua precisão seria de $36{,}17\%$.
+
+% \subsection{Custo computacional}
+% \label{sec:res_custo}
+
+% A hipótese secundária pergunta se o ganho preditivo do HMM justifica sua maior complexidade computacional. O custo de um modelo tem duas partes, o ajuste, feito uma vez 
+% sobre o conjunto de treinamento, e a previsão, feita a cada novo \textit{candle}. A \autoref{tab:res_custo} resume o ajuste de cada modelo na configuração principal.
+
+% \begin{table}[htbp]
+%     \centering
+%     \caption{Custo de ajuste dos modelos na configuração principal.}
+%     \label{tab:res_custo}
+%     \small
+%     \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.24\textwidth}r>{\raggedright\arraybackslash}p{0.36\textwidth}r@{}}
+%         \toprule
+%         \textbf{Modelo} & \textbf{Parâmetros} & \textbf{Procedimento de ajuste} & \textbf{Tempo} \\
+%         \midrule
+%         Cadeia de 1ª ordem & 6 & Contagem das transições, em uma única passagem pelos dados & --- \\
+%         % MTD (ordem de menor BIC) & 15 & EM, 10 reinícios em cada uma das 10 ordens & ... s \\
+%         HMM de 3 estados & 14 & Baum-Welch, 10 reinícios, até 1.000 iterações cada & 283 s \\
+%         \bottomrule
+%     \end{tabular}
+%     \fonte{Elaborado pelos autores (2026).}
+% \end{table}
+
+% A cadeia de primeira ordem é ajustada contando as transições entre símbolos consecutivos, o que exige uma única passagem pelos dados. 
+% O HMM, por outro lado, é ajustado de forma iterativa: cada iteração do Baum-Welch percorre a série inteira com os algoritmos \textit{Forward} e \textit{Backward}, 
+% com custo proporcional ao tamanho da série e ao quadrado do número de estados \cite{Rabiner1989}, e o ajuste precisa ser repetido a partir de vários pontos iniciais 
+% (Seção~\ref{sec:res_hmm_estabilidade}).
+
+% Na configuração principal, os 10 reinícios somaram 7.728 iterações e levaram 283 segundos, cerca de 37 milissegundos por iteração sobre os 905 mil símbolos do treinamento. 
+% Desse total, $90\%$ das iterações foram gastas nos sete reinícios que não chegaram à melhor solução e pararam no limite de 1.000 iterações. O principal custo do HMM, portanto, 
+% não é o de uma única execução do algoritmo, mas o da necessidade de repeti-lo várias vezes para reduzir o risco de um ótimo local.
+
+% Em termos absolutos, porém, esse custo é pequeno: um ajuste completo leva poucos minutos em um computador pessoal e é feito uma única vez. A previsão é ainda mais barata. 
+% Para cada novo \textit{candle}, o filtro \textit{forward} executa apenas um passo, que envolve as matrizes $A$ e $B$ de dimensão $3 \times 3$ e não depende do tamanho da série. 
+% Assim, uma vez ajustado, o HMM pode produzir previsões em tempo real, a cada cinco minutos, sem custo relevante.
+
+% O custo computacional, portanto, não é um impedimento ao uso do HMM. Se o ganho que ele oferece justifica esse custo depende do tipo de ganho considerado, o que é 
+% discutido na Seção \ref{sec:res_discussao}.
+
+\subsection{Discussão sobre as Hipóteses}
+\label{sec:res_discussao}
+
+Esta seção confronta os resultados com os critérios de aceitação definidos na Seção~\ref{sec:criterios} e com os trabalhos relacionados apresentados na Seção~\ref{sec:trabalhos_relacionados}.
+
+\subsubsection{Hipótese principal}
+\label{sec:res_hipotese_principal}
+
+% A preencher com os resultados do MTD (relatório do MTD).
+% Estrutura sugerida, na mesma ordem do critério da Seção 3.5.3:
+%  1. Ordem de menor BIC na configuração principal e o que ela indica sobre a memória da série.
+%  2. F1 direcional do MTD nessa ordem, comparado ao do modelo aleatório e ao da persistência.
+%  3. Acerto de direção do MTD, com IC 95%, comparado ao da persistência (48,79%), ao de 50% e ao da melhor constante (50,86%).
+%  4. Veredito: a hipótese é aceita, rejeitada ou parcialmente aceita, e por quê.
+
+\subsubsection{Hipótese secundária}
+\label{sec:res_hipotese_secundaria}
+
+A hipótese secundária afirma que o HMM, por inferir estados não observáveis, como regimes de mercado e de volatilidade, oferece um ganho 
+preditivo que justifica sua maior complexidade computacional em relação às Cadeias de Markov. A \autoref{tab:res_hipotese_secundaria} compara os 
+resultados da configuração principal com o critério definido na Seção \ref{sec:criterios}.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Critérios da hipótese secundária na configuração principal.}
+    \label{tab:res_hipotese_secundaria}
+    \small
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.28\textwidth}rrrc@{}}
+        \toprule
+        \textbf{Critério} & \textbf{HMM} & \textbf{Cadeia de 1ª ordem} & \textbf{MTD} & \textbf{Atendido} \\
+        \midrule
+        LL/símbolo no teste & $-1{,}01545$ & $-1{,}05997$ & --- & Sim \\
+        BIC no treinamento & 1.858.005,0 & 1.934.137,9 & --- & Sim \\
+        F1 direcional & 0,201 & 0,000 & --- & Sim \\
+        Acerto de direção & 50,13\% & 51,21\% & --- & Não \\
+        \bottomrule
+    \end{tabular}
+    \fonte{Elaborado pelos autores (2026).}
+\end{table}
+
+Os resultados confirmam o primeiro ponto da hipótese. O HMM inferiu três regimes com significado de mercado (Seção \ref{sec:res_hmm_regimes}), e esses regimes são de volatilidade, 
+diferem na chance de o preço se mover, e não no sentido do movimento. Com eles, o HMM obteve a maior log-verossimilhança no teste e o menor BIC, este em todas as 
+60 configurações avaliadas. Há, portanto, ganho preditivo no sentido probabilístico, o HMM atribui mais probabilidade ao que de fato ocorre do que as Cadeias de Markov.
+
+Esse ganho, porém, está em antecipar \textit{quando} o preço se move, e não \textit{para onde}. O HMM acerta $73{,}94\%$ das vezes em que prevê movimento (Seção \ref{sec:res_movimento}), 
+mas seu acerto de direção, de $50{,}13\%$, não se distingue do acaso e fica abaixo do da cadeia de primeira ordem (Seção \ref{sec:res_direcao}). Seu F1 direcional é 
+maior que o da cadeia apenas porque esta nunca prevê movimento, como mostrado na Seção \ref{sec:res_direcao}, esse valor reflete o acerto do momento do movimento, e não do seu sentido. 
+O critério de não haver perda no acerto de direção não é atendido, e a hipótese secundária não é confirmada pelo critério adotado. 
+A conclusão mais precisa é que o HMM oferece ganho preditivo sobre a volatilidade, mas não sobre a direção.
 
 % ---------------------------------------------------------------
 % CONCLUSÃO
@@ -2250,7 +2581,17 @@ Na sequência, faça a \textbf{análise crítica e comparação}, discutindo as 
 \chapter{Conclusão}
 
 \section{Retomada do problema e dos objetivos}
-Retome o problema e destaque o que foi atingido.
+\label{sec:conc_retomada}
+
+Este trabalho investigou se Cadeias de Markov de alta ordem, no modelo MTD, e Modelos Ocultos de Markov preveem a direção do próximo movimento do Bitcoin, 
+em janelas de cinco minutos, melhor que modelos de referência (Seção~\ref{sec:problema}). Os objetivos secundários foram atingidos, os dados foram coletados e 
+discretizados em três símbolos, em 60 configurações, e o MTD e o HMM foram implementados, treinados e comparados aos modelos de referência sob os critérios da Seção \ref{sec:criterios}.
+
+% A preencher com o resultado do MTD: ordem de menor BIC e veredito da hipótese principal.
+
+O HMM identificou três regimes de volatilidade e obteve a maior log-verossimilhança e o menor BIC entre os modelos avaliados. Esse ganho, porém, permitiu prever \textit{quando} o 
+preço se move, mas não para onde, seu acerto de direção, de $50{,}13\%$, não se distinguiu do acaso, e a hipótese secundária não foi confirmada. Assim, na escala de cinco minutos, 
+a dependência temporal existe, mas está na volatilidade, e a direção do preço permanece, na prática, imprevisível.
 
 \section{Contribuições para a Computação}
 Explique o que a pesquisa trouxe de novo.
