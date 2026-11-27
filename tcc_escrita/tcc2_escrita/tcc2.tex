@@ -148,28 +148,12 @@
 % RESUMO
 % ---------------------------------------------------------------
 \begin{resumo}
-As criptomoedas, em especial o Bitcoin, apresentam alta volatilidade e um grande volume de negociações, 
-o que torna difícil antecipar o comportamento de seus preços em intervalos curtos de tempo. 
-A literatura que aplica Cadeias de Markov a esses ativos concentra-se em janelas diárias ou horárias, nas quais o 
-crescimento exponencial do número de parâmetros limita a ordem dos modelos. 
-Dessa maneira, uma das soluções é utilizar modelos estocásticos mais compactos, como as 
-Cadeias de Markov de alta ordem no modelo de Mistura de Distribuições de Transição (MTD) e os Modelos Ocultos de Markov (HMM). 
-O objetivo principal do trabalho é avaliar a capacidade desses modelos de prever a direção do próximo movimento do Bitcoin em 
-janelas de cinco minutos, comparando-os a modelos de referência e identificando que tipo de dependência temporal cada um consegue 
-capturar. Foram realizadas a coleta e o armazenamento de nove anos de cotações do par BTC/USDT e a definição de uma 
-discretização causal dos retornos em três símbolos. Também foi feita a implementação do MTD e de um HMM otimizado em Numba, 
-validado contra uma biblioteca de referência. Os experimentos avaliaram log-verossimilhança fora da amostra, AUC, acerto de 
-direção e F1 das classes direcionais, além de testes de estabilidade no tempo e de sensibilidade à discretização. Os resultados 
-mostraram que o HMM se destaca na log-verossimilhança e na identificação de regimes de volatilidade interpretáveis, superando a 
-cadeia de primeira ordem em todos os períodos avaliados. O MTD capturou uma memória que se estende por até dez defasagens, 
-enquanto nenhum dos modelos apresentou acerto de direção distinguível do acaso. Como extensões naturais deste trabalho, 
-destacam-se a combinação do HMM como previsor de volatilidade com modelos voltados à direção, a avaliação da direção condicionada 
-aos regimes identificados, a aplicação a outros ativos e a consideração de custos de transação.
+Este documento apresenta o Trabalho de Conclusão de Curso (TCC2) desenvolvido no SENAC Santo Amaro, com base na estrutura recomendada por Raul Sidnei Wazlawick em \textit{Metodologia de Pesquisa para Ciência da Computação}. O foco está em evidenciar o problema, os objetivos, o método, o desenvolvimento, os resultados e a contribuição científica do trabalho, evitando textos meramente descritivos. O documento está organizado em capítulos que apresentam a introdução ao tema, a revisão bibliográfica que fundamenta a pesquisa, a metodologia adotada, o desenvolvimento da solução, os resultados e a respectiva análise crítica, seguidos da conclusão e das referências bibliográficas.
 
 \vspace{\onelineskip}
 
 \noindent
-\textbf{Palavras-chave}: Bitcoin. Cadeias de Markov de alta ordem. Modelos Ocultos de Markov. Mistura de Distribuições de Transição. Séries temporais de alta frequência.
+\textbf{Palavras-chave}: palavra1. palavra2. palavra3. palavra4. palavra5.
 \end{resumo}
 
 % ---------------------------------------------------------------
@@ -181,27 +165,12 @@ aos regimes identificados, a aplicação a outros ativos e a consideração de c
 % resumo em língua estrangeira vem logo após o resumo em português.
 \begin{resumo}[Abstract]
  \begin{otherlanguage*}{english}
-   Cryptocurrencies, especially Bitcoin, show high volatility and a large trading volume, which makes it difficult to anticipate their 
-   price behavior over short time intervals. The literature that applies Markov chains to these assets focuses on 
-   daily or hourly windows, where the exponential growth in the number of parameters limits the order of the models. 
-   Thus, one solution is to use more compact stochastic models, such as high-order Markov chains in the 
-   Mixture Transition Distribution (MTD) model and Hidden Markov Models (HMM). The main objective of this work is to evaluate the 
-   ability of these models to predict the direction of Bitcoin’s next movement in five-minute windows, 
-   comparing them with baseline models and identifying which kind of temporal dependence each one is able to capture. 
-   Nine years of BTC/USDT price data were collected and stored, and a causal discretization of returns into three symbols was defined. 
-   The MTD model and an HMM optimized in Numba were also implemented, and the HMM was validated against a reference library. 
-   The experiments evaluated out-of-sample log-likelihood, AUC, directional accuracy and the F1 score of the directional classes, 
-   along with tests of stability over time and of sensitivity to the discretization. The results showed that the HMM stands 
-   out in log-likelihood and in identifying interpretable volatility regimes, outperforming the first-order chain in every 
-   period evaluated. The MTD captured a memory that extends up to ten lags, while none of the models achieved directional 
-   accuracy distinguishable from chance. Natural extensions of this work include combining the HMM, as a volatility predictor, 
-   with direction-oriented models; evaluating direction conditioned on the identified regimes; applying the approach to other assets; 
-   and accounting for transaction costs.
+   This document presents the undergraduate final project (TCC2) developed at SENAC Santo Amaro, based on the structure recommended by Raul Sidnei Wazlawick in \textit{Metodologia de Pesquisa para Ciência da Computação}. The focus is on highlighting the problem, the objectives, the method, the development, the results and the scientific contribution of the work, avoiding merely descriptive texts. The document is organized into chapters presenting the introduction to the topic, the literature review that grounds the research, the adopted methodology, the development of the solution, the results and their critical analysis, followed by the conclusion and the bibliographic references.
 
    \vspace{\onelineskip}
 
    \noindent
-   \textbf{Keywords}: Bitcoin. High-order Markov chains. Hidden Markov Models. Mixture Transition Distribution. High-frequency time series.
+   \textbf{Keywords}: keyword1. keyword2. keyword3. keyword4. keyword5.
  \end{otherlanguage*}
 \end{resumo}
 
@@ -240,16 +209,11 @@ aos regimes identificados, a aplicação a outros ativos e a consideração de c
 \toprule
 \textbf{Abreviatura/Sigla} & \textbf{Significado} \\
 \midrule
-AIC     & \emph{Akaike Information Criterion} (Critério de Informação de Akaike) \\
-AUC     & \emph{Area Under the Curve} (Área sob a Curva ROC) \\
 BIC     & \emph{Bayesian Information Criterion} (Critério de Informação Bayesiano) \\
 BTC     & \emph{Bitcoin} \\
 EM      & \emph{Expectation-Maximization} (Maximização da Expectativa) \\
-EWMA    & \emph{Exponentially Weighted Moving Average} (Média Móvel Exponencialmente Ponderada) \\
 HMM     & \emph{Hidden Markov Model} (Modelo Oculto de Markov) \\
-IC      & Intervalo de Confiança \\
 LDA     & \emph{Linear Discriminant Analysis} (Análise Discriminante Linear) \\
-LL      & \emph{Log-Likelihood} (Log-verossimilhança) \\
 LSTM    & \emph{Long Short-Term Memory} \\
 MAE     & \emph{Mean Absolute Error} (Erro Médio Absoluto) \\
 MAPE    & \emph{Mean Absolute Percentage Error} (Erro Percentual Absoluto Médio) \\
@@ -352,28 +316,11 @@ mercado, segundo, fornece o volume de dados necessário para a implementação d
 e Modelos Ocultos de Markov, do inglês \textit{Hidden Markov Model} (HMM). A utilização de HMMs, em particular, traz o benefício de traduzir variações comportamentais
 para a compreensão de cenários de mercado não observáveis diretamente \cite{malekinezhad2026}.
 
-Cadeias de Markov de alta ordem, no modelo MTD, e Modelos Ocultos de Markov, treinados sobre os retornos do Bitcoin em janelas de cinco minutos discretizados em três símbolos, preveem a direção do próximo movimento do ativo com desempenho superior ao de modelos de referência?
-
 % ---------------------------------------------------------------
 \section{Formulação do problema}
 \label{sec:problema}
 
-Conforme apresentado, os trabalhos que aplicam Cadeias de Markov à previsão de criptomoedas operam em 
-janelas diárias \cite{NASCIMENTO} ou horárias \cite{ARAUJO}. Em ambos, o crescimento exponencial do número de parâmetros das 
-cadeias de alta ordem limita a ordem que pode ser investigada. Permanece em aberto, portanto, se a dependência temporal 
-observada nessas escalas persiste na microestrutura do mercado, em intervalos de cinco minutos. Também permanece em 
-aberto se modelos que contornam a explosão combinatória conseguem convertê-la em previsão da direção do preço. 
-Dois exemplos desses modelos são o MTD, cujo número de parâmetros cresce linearmente com a ordem, e o HMM, que resume o 
-passado em estados ocultos.
-Diante dessa lacuna, este trabalho busca responder à seguinte pergunta de pesquisa:
-
-
-\begin{quote}
-\textit{Cadeias de Markov de alta ordem, no modelo MTD, e Modelos Ocultos de Markov, treinados sobre os 
-retornos do Bitcoin em janelas de cinco minutos discretizados em três símbolos, preveem a direção do próximo 
-movimento do ativo com desempenho superior ao de modelos de referência?}
-\end{quote}
-
+Coloque o problema em forma de pergunta clara, delimitando o que será investigado e qual resultado se espera atingir dentro da Computação. A pergunta de pesquisa deve ser específica o suficiente para ser respondida ao longo do trabalho e diretamente derivada da lacuna apresentada na contextualização.
 
 \section{Motivação}
 
@@ -410,10 +357,7 @@ Esta seção apresenta as diretrizes que norteiam este trabalho, detalhando o pr
 
 \subsection{Objetivo principal}
 
-Avaliar a capacidade de Cadeias de Markov de alta ordem, no modelo de Mistura de Distribuições de Transição (MTD), 
-de prever o comportamento direcional do Bitcoin em janelas de cinco minutos, identificando até qual ordem a memória 
-da série contribui para a previsão, e comparar seu desempenho preditivo com o de modelos de referência 
-(aleatório, persistência, frequências e cadeia de primeira ordem) e com o de Modelos Ocultos de Markov (HMM).
+Avaliar a eficácia e identificar componentes de memória de longo alcance em Cadeias de Markov de ordem superior na predição do comportamento direcional do Bitcoin em janelas de cinco minutos, comparando seu desempenho preditivo com modelos de referência (aleatório e de persistência) e com o Modelo HMM.
 
 \subsection{Objetivos secundários}
 
@@ -421,10 +365,9 @@ da série contribui para a previsão, e comparar seu desempenho preditivo com o 
     \item Realizar a coleta e o pré-processamento de dados históricos de cotação do Bitcoin em janelas de cinco minutos;
     \item Calcular os retornos logarítmicos da série temporal para extrair as informações de variação e volatilidade;
     \item Estabelecer e aplicar um critério de discretização para representar de maneira classificatória os movimentos direcionais do ativo;
-    \item Implementar e treinar modelos de Mistura de Distribuições de Transição, visando identificar a partir de qual 
-    ordem a dependência temporal se torna estatisticamente relevante;
+    \item Implementar e treinar modelos de Cadeias de Markov de diferentes ordens, visando identificar a partir de qual ordem a dependência temporal se torna estatisticamente relevante;
     \item Desenvolver e treinar um Modelo HMM para inferir a influência de estados ocultos no comportamento do preço.
-    \item Avaliar e comparar o desempenho preditivo dos modelos desenvolvidos em relação aos modelos empíricos de referência (aleatório,frequências, cadeia de primeira ordem e persistência).
+    \item Avaliar e comparar o desempenho preditivo dos modelos desenvolvidos em relação aos modelos empíricos de referência (aleatório e de persistência).
 \end{enumerate}
 
 % ===============================================================
@@ -655,8 +598,16 @@ Segundo \citeonline{morettin2018analise}, a análise de séries temporais pode s
     \item buscar periodicidades relevantes nos dados.
 \end{itemize}
 
-Dentre esses objetivos, este trabalho se concentra na previsão de valores futuros. Para isso, é necessário antes compreender 
-o comportamento da série de retornos do Bitcoin e as propriedades que a distinguem de outras séries temporais, apresentadas a seguir.
+Em diversas áreas do conhecimento como engenharia, ciências exatas e ciências humanas, se utiliza o conceito de sistema dinâmico, que tem como componentes principais uma série de entrada $X(t)$, uma série de saída $Z(t)$ e uma função de transferência $v(t)$. Para estes sistemas, os problemas que podem ser investigados são
+
+\begin{itemize}
+    \item estimar a função de transferência conhecendo-se as séries de entrada e de saída
+    \item prever a série $Z(t)$ a partir das observações de $X(t)$
+    \item estudar o comportamento do sistema simulando a série de entrada $X(t)$
+    \item controlar a série de saída $Z(t)$ por meio do ajuste conveniente da série de entrada $X(t)$
+\end{itemize} 
+
+Os problemas que podem ser resolvidos através da análise de séries temporais são particularmente interessantes para a realização deste trabalho, a análise e entendimento completo da série temporal do Bitcoin e suas propriedades são fundamentais para a modelagem de modelos que realizem a previsão de comportamentos futuros.
 
 \subsubsection{Propriedades de séries temporais financeiras}
 
@@ -667,12 +618,7 @@ As séries financeiras, embora compartilhem da estrutura geral descrita acima, p
     \label{retorno_logaritmico}
 \end{equation}
 
-em que $P_t$ é o preço do ativo no instante $t$ e $p_t = \ln(P_t)$ denota o logaritmo natural do preço nesse mesmo 
-instante \cite{morettin2018analise}. A passagem para os retornos logarítmicos confere à série propriedades 
-convenientes para a modelagem, tais como a aditividade temporal e a estabilização da variância. Por exemplo, se o 
-preço de um ativo cai de 100 para 80 e depois volta a 100, os retornos simples são de $-20\%$ e $+25\%$, cuja soma não é zero. 
-Já os retornos logarítmicos são $\ln(0{,}8) \approx -0{,}223$ e $\ln(1{,}25) \approx +0{,}223$, que se anulam. 
-De modo geral, o retorno logarítmico acumulado em vários períodos é a soma dos retornos logarítmicos de cada período.
+em que $P_t$ é o preço do ativo no instante $t$ e $p_t = \ln(P_t)$ denota o logaritmo natural do preço nesse mesmo instante \cite{morettin2018analise}. A passagem para os retornos logarítmicos confere à série propriedades convenientes para a modelagem, tais como a aditividade temporal e a estabilização da variância. Por exemplo, caso um ativo sofra uma queda de $25\%$ seguida de uma alta de $25\%$, o valor do ativo irá permanecer inalterado.
 
 \subsubsection{Estacionariedade e autocorrelação}
 \label{subsubsec:estacionariedade}
@@ -1090,12 +1036,6 @@ A partir da combinação das variáveis \textit{forward} ($\alpha$) e \textit{ba
 probabilidade de estar em um estado específico em um dado momento, ajustando iterativamente os parâmetros do modelo para maximizar a probabilidade da 
 sequência de observações fornecida no treinamento \cite{jm3}.
 
-\subsubsection{Ótimos locais e reinícios}
-
-\subsubsection{Escalonamento numérico}
-
-\subsubsection{Previsão pelo filtro forward}
-
 Dado o funcionamento e as características dos modelos preditivos que iremos utilizar para alcançar os objetivos do trabalho,
 é de fundamental importância entender como iremos tratar os dados de retorno da série temporal do Bitcoin para a realização do treinamento
 dos modelos. A próxima seção é dedicada a como iremos tratar e preparar os dados para estes modelos.
@@ -1121,54 +1061,30 @@ por ruídos.
 \subsubsection{Estratégia de discretização dos dados}
 \label{discretizacao}
 
-De maneira similar a \citeonline{ARAUJO}, a discretização é aplicada sobre os retornos logarítmicos da série 
-(Equação~\ref{retorno_logaritmico}) e classifica cada retorno conforme o seu afastamento da média, medido em 
-frações do desvio padrão. Dados uma média amostral $\overline{r}$ e um desvio padrão amostral $s$, 
-estimados sobre um conjunto de retornos de referência, e um parâmetro $k > 0$, cada retorno $r(t)$ é mapeado 
-em um símbolo segundo a relação
+De maneira similar a \citeonline{ARAUJO}, a discretização será aplicada sobre os retornos logarítmicos da série temporal do Bitcoin 
+(Equação~\ref{retorno_logaritmico}) em janelas de cinco minutos, onde a divisão temporal da série será realizada 
+antes do cálculo dos parâmetros de discretização. Conforme a abordagem de \citeonline{Nascimento2023}, 
+$95\%$ da série cronológica será separada para o conjunto de treinamento dos modelos de predição, e os $5\%$ 
+finais serão reservados para o conjunto de teste.
+
+A média amostral ($\overline{r}$) e o desvio padrão ($s$) serão calculados exclusivamente sobre o conjunto de treinamento. 
+A partir desses parâmetros isolados, seguimos a seguinte relação
 
 \begin{equation}
     \begin{aligned}
-        \left( r(t) - \overline{r} \right) < -\frac{s}{k} &\iff -1 \\
-        -\frac{s}{k} \leq \left( r(t) - \overline{r} \right) \leq \frac{s}{k} &\iff 0 \\
-        \left( r(t) - \overline{r} \right) > \frac{s}{k} &\iff 1
+        \left( r(t) - \overline{r} \right) < -\frac{s}{3} &\iff -1 \\
+        -\frac{s}{3} \leq \left( r(t) - \overline{r} \right) \leq \frac{s}{3} &\iff 0 \\
+        \left( r(t) - \overline{r} \right) > \frac{s}{3} &\iff 1 \\
     \end{aligned}
     \label{discretizacao_eq}
 \end{equation}
 
-em que os símbolos $-1$, $0$ e $1$ representam, respectivamente, uma queda significativa, uma oscilação pouco expressiva em 
-torno da média e uma alta significativa. O parâmetro $k$ controla a largura da faixa central: quanto maior o valor de $k$, 
-mais estreita é a faixa e menor é a fração de símbolos $0$. Por isso, além de $k = 3$, são avaliados os limiares $s/4$ e $s/5$, 
-que tornam as três classes mais equilibradas.
-
-A decisão central da discretização é a escolha do conjunto de referência sobre o qual $\overline{r}$ e $s$ são estimados. 
-
-A forma mais simples, aqui denominada limiar fixo, estima esses valores uma única vez, sobre toda a amostra ou apenas 
-sobre o conjunto de treinamento, e os aplica a todos os retornos. Essa forma pressupõe que a variância dos retornos seja 
-constante ao longo do tempo, como discutido na Seção \label{sec:fatos_estilizados}, porém, a volatilidade do Bitcoin 
-diminui ao longo dos anos. Com um limiar fixo, um mesmo valor de retorno é classificado como movimento 
-significativo em um período e como oscilação em outro, de modo que a proporção de cada símbolo varia com o período analisado. 
-
-Em particular, o conjunto de teste, que contém os dados mais recentes, passa a ter uma distribuição de símbolos diferente da 
-do conjunto de treinamento.
-
-Uma alternativa é o limiar adaptativo, no qual a série é dividida em blocos consecutivos de mesma duração, como meses. 
-Os retornos de cada bloco são classificados pela Equação \ref{discretizacao_eq} usando a média e o desvio padrão calculados 
-sobre os retornos do bloco imediatamente anterior. Dessa forma, os valores de $\overline{r}$ e $s$ são atualizados a cada bloco.
-
-Esse procedimento tem duas propriedades relevantes. Primeiro, o limiar acompanha a variação da volatilidade, 
-e cada símbolo passa a indicar um movimento grande ou pequeno em relação ao comportamento recente do mercado. 
-Assim, a proporção de cada símbolo permanece estável ao longo do tempo. Segundo, o procedimento é causal: cada símbolo 
-depende apenas de retornos anteriores a ele. Usar as estatísticas do próprio bloco seria mais simples, mas faria cada 
-símbolo depender de retornos posteriores dentro do mesmo bloco, o que constitui vazamento de informação do futuro e 
-impediria aplicar o mesmo procedimento em tempo real. 
-
-Em contrapartida, a régua de cada bloco reage com o atraso de um bloco a mudanças bruscas de volatilidade, e o primeiro 
-bloco da série serve apenas de referência, sem gerar símbolos.
-
-Este trabalho adota o limiar adaptativo como método principal e o limiar fixo, estimado apenas sobre o conjunto de treinamento, 
-como referência na análise de sensibilidade. Os parâmetros adotados, como a duração dos blocos, a divisão entre 
-treinamento e teste e o tratamento de lacunas na série, são descritos no Capítulo~\ref{cap:desenvolvimento}.
+onde $r(t)$ é o retorno logarítmico no instante $t$, $\overline{r}$ é a média amostral dos retornos da série e $s$
+é o desvio padrão amostral. Os símbolos $-1$, $0$ e $1$ representam os movimentos de queda significante, oscilações pouco expressivas em torno da média e movimentos de alta 
+significância, é necessário ressaltar que o trabalho avaliará a sensibilidade dos modelos também a limiares mais estreitos, como $\frac{s}{4}$ e $\frac{s}{5}$, o 
+objetivo é garantir que o estado $0$ represente exclusivamente o ruído branco da microestrutura do mercado, reduzindo o desbalanceamento das classes. A discretização 
+será aplicada separadamente sobre dois conjuntos distintos obtidos através da série dos retornos logarítmicos, conjunto de treinamento e teste, de maneira similar a 
+\citeonline{Nascimento2023}, $95\%$ da série será separado para o treinamento dos modelos de predição e $5\%$ será reservado para o teste.
 
 
 \subsubsection{Granularidade e viabilidade estatística}
@@ -1427,37 +1343,18 @@ tecnológicas e arquiteturais adotadas na etapa de implementação foram fundame
 na revisão bibliográfica discutida no Capítulo \ref{cap:revisao}.
 
 % ---------------------------------------------------------------
-% ---------------------------------------------------------------
 \section{Visão geral da solução}
 
-A solução proposta consiste em um conjunto de modelos que preveem o próximo símbolo da série discretizada do Bitcoin, 
-em janelas de cinco minutos, a partir dos símbolos anteriores. Duas famílias de modelos são avaliadas, Cadeias de Markov de alta ordem, 
-segundo a formulação de Mistura de Distribuições de Transição (MTD) proposta por \citeonline{RAFTERY1985}, 
-ajustadas com ordens de 1 a 10; e os Modelos Ocultos de Markov (HMM), ajustados com 2 a 5 estados ocultos 
-pelo algoritmo de Baum-Welch.
-
-Para verificar se esses modelos oferecem ganho preditivo real, seu desempenho é 
-comparado ao de quatro modelos de referência:
-
-\begin{itemize}
-    \item o modelo aleatório, que sorteia um dos três símbolos com probabilidades iguais;
-    \item o modelo de persistência, que prevê a repetição do último símbolo observado;
-    \item o modelo de frequências, que atribui a cada símbolo a sua proporção no conjunto de treinamento, sem considerar o passado;
-    \item a cadeia de Markov de primeira ordem, que considera apenas o símbolo imediatamente anterior.
-\end{itemize}
-
-Todos os modelos operam sobre a mesma série discreta, obtida pela discretização 
-dos retornos logarítmicos em um alfabeto de três símbolos ($-1$, $0$ e $1$) com limiar adaptativo, 
-conforme a estratégia apresentada na Seção \ref{discretizacao}. 
-A sensibilidade dos resultados à discretização é avaliada com os limiares $s/4$ e $s/5$ e com o limiar fixo. 
-Os modelos são ajustados sobre o conjunto de treinamento e avaliados sobre o conjunto de teste, 
-sempre prevendo um passo à frente com base apenas nos símbolos anteriores.
-
-A avaliação segue o critério definido na Seção \ref{avaliacao}: matriz de confusão, precisão, 
-\textit{recall} e F1 das classes direcionais ($-1$ e $1$). 
-
-Essas métricas são complementadas pela log-verossimilhança e pela AUC, que avaliam as probabilidades 
-previstas sem depender da regra de decisão adotada.
+A solução proposta consistiu na implementação de um modelo de predição direcional
+para a série temporal do Bitcoin em janelas de cinco minutos, baseado em Cadeias de
+Markov de Alta Ordem segundo a formulação de \citeonline{RAFTERY1985}. O desempenho desse
+modelo foi comparado ao de três modelos de referência, o HMM, o modelo de predição aleatório e o modelo de predição por persistência. Todos
+os modelos foram treinados a partir de uma série discreta, obtida pela discretização dos
+retornos logarítmicos da série temporal do Bitcoin em um alfabeto de três símbolos
+($-1$, $0$ e $1$), conforme a estratégia apresentada na Seção~\ref{discretizacao}. Por fim, os modelos
+treinados foram submetidos a testes estatísticos sobre o conjunto de teste, a fim de validar
+sua capacidade preditiva por meio de métricas de classificação acurácia, precisão, \textit{recall},
+F1-\textit{score} e matriz de confusão, conforme discutido na Seção~\ref{avaliacao}.
 
 \section{Pipeline da solução}
 
@@ -1558,115 +1455,6 @@ previstas sem depender da regra de decisão adotada.
     \fonte{Elaborado pelos autores (2026).}
 \end{figure}
 
-% ---------------------------------------------------------------
-\section{Arquitetura e coleta de dados}
-\label{sec:arquitetura}
-
-A solução é organizada em duas partes, ilustradas na Figura~\ref{fig:arquitetura}. A primeira é um serviço de coleta que mantém uma base de 
-dados histórica sempre atualizada. A segunda é o ambiente de experimentos, que trabalha sobre uma cópia congelada dessa base para que os 
-resultados possam ser reproduzidos.
-
-\begin{figure}[htbp]
-    \centering
-    \caption{Arquitetura da solução: coleta contínua e ambiente de experimentos.}
-    \label{fig:arquitetura}
-    \resizebox{\textwidth}{!}{%
-    \begin{tikzpicture}[
-        node distance=0.6cm and 1.9cm,
-        abox/.style={
-            rectangle,
-            rounded corners=5pt,
-            draw=black,
-            line width=0.9pt,
-            fill=gray!6,
-            text width=2.5cm,
-            align=center,
-            minimum height=1.9cm,
-            font=\small,
-            inner sep=5pt
-        },
-        zona/.style={
-            rounded corners=8pt,
-            draw=black!60,
-            dashed,
-            line width=0.7pt
-        },
-        rotulo/.style={
-            font=\small\bfseries,
-            anchor=south west
-        },
-        arrow/.style={
-            line width=1pt,
-            -{Stealth[length=2.8mm, width=2.2mm]},
-            shorten >=2pt,
-            shorten <=2pt
-        },
-        legenda/.style={
-            font=\scriptsize,
-            midway,
-            fill=white,
-            inner sep=1.5pt,
-            align=center
-        }
-        ]
-
-        % Coleta (linha superior)
-        \node (api) [abox] {API REST da Binance\\ \scriptsize\texttt{/api/v3/klines}};
-        \node (coleta) [abox, right=of api] {Serviço de coleta\\ \scriptsize(a cada 5 min)};
-        \node (banco) [abox, right=of coleta] {PostgreSQL\\ \scriptsize tabela \texttt{btc\_usdt}};
-        \node (snap) [abox, right=of banco] {\textit{Snapshot}\\ Parquet + SHA-256};
-
-        % Experimentos (linha inferior, da direita para a esquerda)
-        \node (disc) [abox, below=1.6cm of snap] {Discretização dos retornos};
-        \node (modelos) [abox, left=of disc] {Modelos\\ \scriptsize MTD, HMM e referências};
-        \node (aval) [abox, left=of modelos] {Avaliação no conjunto de teste};
-        \node (rel) [abox, left=of aval] {Relatórios e tabelas};
-
-        % Zonas (retângulos tracejados desenhados a partir dos cantos das caixas)
-        \draw [zona] ([xshift=-0.35cm, yshift=0.35cm]coleta.north west)
-            rectangle ([xshift=0.35cm, yshift=-0.35cm]banco.south east);
-        \node [rotulo] at ([xshift=-0.35cm, yshift=0.35cm]coleta.north west) {Máquina virtual (Oracle Cloud)};
-        \draw [zona] ([xshift=-0.35cm, yshift=0.35cm]rel.north west)
-            rectangle ([xshift=0.35cm, yshift=-0.35cm]disc.south east);
-
-        % Fluxo
-        \draw [arrow] (api) -- node[legenda, above=2pt, fill=none] {\textit{candles}} (coleta);
-        \draw [arrow] (coleta) -- node[legenda, above=2pt, fill=none] {inserção\\em lote} (banco);
-        \draw [arrow] (banco) -- node[legenda, above=2pt, fill=none] {exportação} (snap);
-        \draw [arrow] (snap) -- node[legenda, right=2pt, fill=none] {verificação do \textit{hash}} (disc);
-        \draw [arrow] (disc) -- (modelos);
-        \draw [arrow] (modelos) -- (aval);
-        \draw [arrow] (aval) -- (rel);
-
-    \end{tikzpicture}
-    }
-    \fonte{Elaborado pelos autores (2026).}
-\end{figure}
-
-\subsection{Fonte dos dados}
-
-Os dados históricos foram obtidos da \textit{exchange} Binance, por meio do \textit{endpoint} público \texttt{/api/v3/klines} 
-da sua API REST \cite{BINANCE_API}. Foram coletados os \textit{candles} de cinco minutos do par BTC/USDT, isto é, o preço do Bitcoin 
-cotado em Tether (USDT), uma criptomoeda pareada ao dólar americano. Cada \textit{candle} resume as negociações de um intervalo 
-de cinco minutos e contém, entre outros campos, o instante de abertura, os preços de abertura, máxima, mínima e fechamento, o volume 
-negociado e o número de negociações. Neste trabalho, apenas o preço de fechamento é utilizado para calcular os retornos.
-
-A coleta parte do primeiro \textit{candle} disponível para o par, em 17 de agosto de 2017. Cada requisição devolve no máximo 1.000 \textit{candles}, 
-de modo que o histórico é obtido em requisições sucessivas, cada uma a partir do último instante já recebido. Em caso de falha de rede ou 
-de limite de requisições da API, a requisição é repetida até cinco vezes, com intervalos crescentes entre as tentativas (de 1 a 60 segundos).
-
-\subsection{Armazenamento e coleta contínua}
-
-Os \textit{candles} são armazenados em um banco de dados PostgreSQL hospedado em uma máquina virtual na Oracle. A tabela \texttt{btc\_usdt} 
-guarda as colunas originais da API e tem como chave primária o instante de abertura do \textit{candle}, junto com o par e o intervalo, 
-já que a própria API identifica cada \textit{candle} pelo seu instante de abertura \cite{BINANCE_API}. A inserção é feita em lotes: os \textit{candles} 
-de cada requisição são carregados em uma tabela temporária e depois copiados para a tabela definitiva, ignorando os que já existem. 
-Assim, uma mesma janela de tempo pode ser coletada mais de uma vez sem gerar registros duplicados.
-
-Um serviço executado continuamente na mesma máquina mantém a base atualizada. A cada cinco minutos, 
-ele consulta o instante do último \textit{candle} armazenado e solicita à API apenas os que ainda faltam. O acesso ao banco a partir de 
-outras máquinas é feito exclusivamente por um túnel SSH, de modo que o banco não fica exposto diretamente à internet.
-
 
 \section{Detalhes da implementação}
 \label{sec:implementacao}
@@ -1711,7 +1499,7 @@ ficado fora do ar das 10:30 às 11:30 UTC. Se a captura das 10:30 registrou o va
 registrou o valor 61.131.42USD\$, não é correto calcular o retorno entre esses dois valores na discretização, pois o retorno de 10:30 para 
 11:30 não é válido. Nesse caso, há uma lacuna das 10:35 às 11:25 e, portanto, dois segmentos nesse dia.
 
-% 3.3.2 
+% 3.3.2
 \subsection{Retorno e Limiares}
 \label{subsec:retorno}
 
@@ -1786,14 +1574,7 @@ segundo a qual estatísticas estimadas no treinamento só bastam quando a série
 \subsection{Divisão treino e teste}
 \label{subsec:divisao}
 
-Para nossos experimentos seguimos a proporção de treino e teste usada por \citeonline{Nascimento2023}, onde 95\% dos dados são usados para 
-treinar os modelos, e 5\% são usados para testá-los. A divisão é cronológica, sem embaralhamento, e o corte é feito sobre os
-\textit{candles}, antes do cálculo dos retornos. O modo de discretização afeta diretamente o tamanho do conjunto de treino.
-Na Seção~\ref{subsec:discretizacao} destacamos como a discretização por blocos é feita. Uma de suas características é usar as
-estatísticas do bloco anterior para categorizar os retornos do bloco atual. Desta forma, o primeiro bloco não possui símbolos e
-serve apenas para categorizar o bloco seguinte. Por este motivo, ao aumentar o número de meses de cada bloco perdemos parte do
-conjunto de treino, enquanto o conjunto de teste permanece com o mesmo tamanho. A Tabela~\ref{tab:divisao} mostra essa proporção
-para diferentes tamanhos de bloco.
+Para nossos experimentos seguimos a proporção usada por \citeonline{ARAUJO}. No modo de discretização global nenhum efeito é 
 
 \begin{table}[htb]
   \centering
@@ -1815,397 +1596,172 @@ para diferentes tamanhos de bloco.
   \legend{Fonte: Elaborado pelos autores (2026).}
 \end{table}
 
-O modo \textit{Global}, por sua vez, não perde símbolos além dos retornos inexistentes (o primeiro \textit{candle} e as lacunas,
-Seção~\ref{subsec:lacunas}), pois todos os retornos válidos são convertidos em símbolos. Por isso a proporção de 95\% e 5\% é
-praticamente exata, já que o corte é feito sobre os \textit{candles}.
-
 %3.4.1
 \subsection{Modelos de referência}
 \label{subsec:modelos_ref}
-
-Neste trabalho chamamos de modelos de referência os seguintes modelos:
-
-\begin{itemize}
-  \item Markov de primeira ordem: uma matriz de transição simples olhando para o estado imediatamente anterior.
-  \item Modelo de persistência: o modelo de persistência escolhe sempre a mesma constante, $-1$, $0$ ou $+1$.
-  \item Modelo aleatório: atribui probabilidade $1/3$ a cada símbolo, independentemente do estado anterior.
-\end{itemize}
-
-Em nossos experimentos usamos principalmente o modelo de persistência para comparação com os modelos-alvo do trabalho. O modelo de persistência
-é usado na comparação com a sua melhor constante. Por exemplo, suponha que, ao prever apenas a direção do movimento, o modelo que
-escolhe sempre $+1$ (o preço sempre sobe) atinja um acerto de 46,2\%, enquanto o que escolhe sempre $-1$ (o preço sempre cai)
-atinja 50,7\%. Neste caso, usaremos como referência a constante de maior acerto.
-
-Em nossos relatórios buscamos responder duas perguntas:
-
-\begin{enumerate}
-  \item Haverá uma movimentação significante no mercado? 
-  \item Se houver uma movimentação significante, qual o sinal dela?
-\end{enumerate}
-
-Movimentações significantes são todas as movimentações que ficam acima ou abaixo do nosso limiar empregado na discretização. O modelo de persistência é muito 
-utilizado em nossos experimentos para ajudar a comparar nossos modelos-alvo na segunda pergunta. As perguntas respondidas e os resultados dos experimentos serão 
-detalhados na Seção~\ref{sec:resultados}.
-
 %3.4.2
 \subsection{MTD}
 \label{subsec:mtd_metodologia}
-
-Implementamos o MTD apresentado na Seção~\ref{sec:referencial} na classe \texttt{MTD} (arquivo \texttt{mtd.py}, em \texttt{src/models/mtd}), para o alfabeto
-de $m = 3$ símbolos $\{-1, 0, +1\}$ e ordem $l$ configurável. Nesta subseção descrevemos o modelo como implementado, o algoritmo de estimação, a escolha da
-ordem e, por fim, os \textit{scripts} de experimento e o relatório que eles produzem.
-
-\subsubsection{Parametrização}
-
-Na implementação, a matriz $Q$ é armazenada com linhas somando 1, isto é, $q_{ij}$ é a probabilidade de o símbolo $j$ ocorrer quando o símbolo $i$
-ocupa a posição de um dos lags. Essa convenção é a transposta da adotada por \citeonline{RAFTERY1985}, e o modelo fica:
-
-\begin{equation}
-    P[X_t = j \mid X_{t-1} = i_1, \dots, X_{t-l} = i_l] = \sum_{g=1}^{l} \lambda_g \, q_{i_g j},
-    \qquad \lambda_g \geq 0, \quad \sum_{g=1}^{l} \lambda_g = 1
-\end{equation}
-
-Há uma única matriz $Q$ compartilhada por todos os lags, e o vetor $\lambda$ pondera a contribuição de cada um. O número de parâmetros livres é
-$m(m-1) + (l-1)$, ou seja, $l + 5$ para três símbolos, contra $3^l \cdot 2$ da cadeia de Markov completa de ordem $l$. Com $l = 1$ o modelo coincide com a
-cadeia de primeira ordem.
-
-\subsubsection{Estimação por EM}
-
-A verossimilhança do MTD tem uma soma dentro do logaritmo, o que impede a maximização direta em $Q$ e $\lambda$. Estimamos os parâmetros pelo algoritmo
-\textit{Expectation-Maximization} (EM), seguindo \citeonline{LEBRE2008}, que trata o lag responsável por cada observação como uma variável latente $Z_t \in \{1, \dots, l\}$.
-Seja $N = T - l$ o número de transições da sequência de treino, pois os $l$ primeiros símbolos servem apenas de contexto. Em cada iteração:
-
-\begin{itemize}
-  \item \textbf{Passo E:} para cada transição, calcula-se a responsabilidade de cada lag, isto é, a probabilidade de o lag $g$ ter gerado o símbolo observado:
-  \begin{equation}
-      \gamma_t(g) = \frac{\lambda_g \, q_{x_{t-g}\, x_t}}{\sum_{g'=1}^{l} \lambda_{g'} \, q_{x_{t-g'}\, x_t}}
-  \end{equation}
-  \item \textbf{Passo M:} reestimam-se os pesos como a média das responsabilidades, $\lambda_g = \frac{1}{N}\sum_t \gamma_t(g)$, e a matriz $Q$ como a contagem
-  ponderada de pares lag-alvo, normalizada por linha:
-  \begin{equation}
-      q_{ij} = \frac{c_{ij} + \varepsilon}{\sum_{j'} c_{ij'} + m\varepsilon}, \qquad
-      c_{ij} = \sum_{t} \sum_{g} \gamma_t(g) \, \mathbf{1}[x_{t-g} = i,\, x_t = j]
-  \end{equation}
-\end{itemize}
-
-O termo $\varepsilon = 10^{-10}$ funciona como uma pseudocontagem e evita uma linha de $Q$ nula quando um símbolo nunca aparece como lag e mantém as
-probabilidades positivas, de modo que o logaritmo da verossimilhança permanece finito. O processo para quando a variação relativa da log-verossimilhança fica abaixo de
-$10^{-8}$ ou após 1000 iterações. Como o EM nunca piora a verossimilhança, a implementação a verifica a cada passo: se houver queda além da tolerância, ela emite um
-aviso e devolve os parâmetros da iteração anterior.
-
-O MTD e o HMM são, portanto, estimados pela mesma família de algoritmos, o EM, que no HMM corresponde ao \textit{Baum-Welch}~\cite{Rabiner1989}. As implementações são
-independentes, mas seguem o mesmo padrão. Ambas usam o critério de parada pela variação relativa da verossimilhança e paralelizam o passo E, dividindo as transições
-em blocos com acumuladores locais, somados ao final, com a biblioteca \textit{Numba}.
-
-\subsubsection{Inicialização e reinícios}
-
-O EM converge para um máximo local, que depende do ponto de partida. Por isso cada ordem é ajustada com vários reinícios e mantemos o de maior
-log-verossimilhança. O reinício 0 é determinístico, com $\lambda$ uniforme e $Q$ igual à matriz de transição empírica da cadeia de primeira ordem. Nos demais, $\lambda$
-e cada linha de $Q$ são sorteados de uma distribuição de Dirichlet (concentração 5). Cada reinício usa uma semente derivada de uma semente-base, o que torna o
-resultado repetível. Nos experimentos finais usamos 10 reinícios por ordem e semente-base 0. Para avaliar a estabilidade do ajuste, consideramos que um reinício
-chegou à mesma solução do melhor quando sua log-verossimilhança fica a menos de 1 \textit{nat} de distância dele.
-
-\subsubsection{Verossimilhança, predição e seleção da ordem}
-
-A log-verossimilhança de uma sequência é a soma, sobre as $N$ transições, do logaritmo da probabilidade atribuída ao símbolo observado. Para a predição de um passo,
-o método \texttt{predict\_proba} devolve, para cada posição, a distribuição do símbolo seguinte, calculada a partir dos lags disponíveis. Nas primeiras $l - 1$ posições faltam
-lags, e a implementação usa apenas os existentes, com os pesos renormalizados. Essas posições não entram na avaliação.
-
-Ajustamos o MTD para cada ordem de 1 a 10 e escolhemos a ordem pelo BIC, como em \citeonline{RAFTERY1985}. Para que o critério seja comparável entre ordens, todas são avaliadas sobre
-as mesmas $n$ transições de treino, as últimas $N - l_{max}$, com $l_{max} = 10$. O BIC é usado apenas como critério de seleção entre as ordens do MTD, e o desempenho do modelo
-escolhido é avaliado no conjunto de teste, em comparação com os modelos de referência (Seção~\ref{subsec:modelos_ref}).
-
-\subsubsection{Experimentos e relatórios}
-\label{subsubsec:relatorios}
-
-Os experimentos são executados pelo \textit{script} \texttt{src/experiments/mtd\_analysis.py}, que reúne, em uma única execução, o ajuste do MTD, a comparação com os
-modelos de referência e o HMM, o cálculo das métricas e a geração do relatório. As funções de divisão treino e teste, de acerto de direção e de contagem de lacunas
-vêm do \textit{script} \texttt{mtd\_report.py}, uma versão mais enxuta do relatório, compartilhada por ambos.
-
-\paragraph{Entrada e parâmetros.} A entrada é a \textit{snapshot} em Parquet (Seção~\ref{subsec:ambiente}), cujo resumo SHA-256 é conferido contra o manifesto
-antes de qualquer cálculo. Os parâmetros do \textit{script} são:
-
-\begin{itemize}
-  \item \texttt{-{}-snapshot}: caminho do arquivo Parquet (obrigatório).
-  \item \texttt{-{}-max-order}: maior ordem ajustada (padrão: 10).
-  \item \texttt{-{}-restarts} e \texttt{-{}-seed}: número de reinícios por ordem (padrão: 10) e semente-base (padrão: 0).
-  \item \texttt{-{}-mode}: modos de discretização, \textit{Blocks}, \textit{Global} ou ambos (Seção~\ref{subsec:discretizacao}).
-  \item \texttt{-{}-k}: lista de limiares $s/k$ (padrão: apenas $k = 3$).
-  \item \texttt{-{}-interval}: lista de tamanhos de bloco, em meses (padrão: 1). Vale apenas para o modo \textit{Blocks}; o modo \textit{Global} o ignora.
-  \item \texttt{-{}-hmm-dir}: pasta com os resultados do treinamento do HMM, para incluí-lo na comparação.
-  \item \texttt{-{}-cache}: pasta em que cada MTD ajustado é guardado.
-  \item \texttt{-{}-reuse}: relatórios anteriores, em JSON, cujas configurações são copiadas em vez de recalculadas.
-  \item \texttt{-{}-suffix}: sufixo do nome dos arquivos de saída, para que um novo relatório não sobrescreva um existente.
-  \item \texttt{-{}-detail}: configurações que recebem uma seção detalhada no relatório (padrão: \textit{Blocks} com $k = 3$ e 1 mês, e \textit{Global} com $k = 3$).
-  \item \texttt{-{}-output}: pasta de saída (padrão: \texttt{relatorios/}).
-\end{itemize}
-
-Uma execução percorre o produto cartesiano das listas de modos, de $k$ e de tamanhos de bloco, e cada combinação é uma configuração de discretização. No relatório final,
-usamos $k$ de 1 a 10 e blocos de 1, 2, 3, 6 e 12 meses, além do modo \textit{Global}, o que resulta em $10 \times (5 + 1) = 60$ configurações. Em cada uma, o MTD é ajustado nas dez ordens, o que
-leva a 600 ajustes.
-
-\paragraph{Peculiaridades.} Algumas decisões do \textit{script} afetam a leitura dos resultados:
-
-\begin{itemize}
-  \item \textbf{Mesmas transições para todos os modelos.} O treino usa as últimas $N - l_{max}$ transições e o teste usa todas as posições do conjunto de teste, com o
-  contexto vindo do fim do treino. Assim, as verossimilhanças e o BIC de modelos de ordens diferentes são comparáveis. Entre configurações diferentes, não são, pois cada uma tem outra
-  distribuição de símbolos.
-  \item \textbf{Modelos de referência.} Em cada configuração, o MTD é comparado ao modelo aleatório, à frequência marginal do treino, ao modelo de persistência e à cadeia de primeira ordem,
-  ajustados no mesmo treino.  
-  \item \textbf{Lacunas.} Os símbolos pertencem a segmentos contínuos (Seção~\ref{subsec:lacunas}), mas o contexto de uma transição próxima ao início de um segmento pode atravessar a lacuna. O
-  relatório conta essas transições e compara a log-verossimilhança com e sem elas.
-  \item \textbf{Cache e reaproveitamento.} Cada MTD ajustado é guardado em JSON, com uma chave que inclui o modo, o $k$, o tamanho do bloco, o resumo SHA-256 da \textit{snapshot}, o tamanho do treino,
-  a ordem, o número de reinícios e a semente. Uma nova execução pula o EM do que já foi calculado. O \texttt{-{}-reuse} só copia configurações de relatórios que usaram a mesma \textit{snapshot} e os mesmos parâmetros
-  do MTD, o que permitiu ampliar os experimentos em etapas, sem refazer os ajustes anteriores.
-\end{itemize}
-
-\paragraph{Métricas.} Para cada modelo, no treino e no teste, o \textit{script} calcula a log-verossimilhança por símbolo, o BIC, a acurácia, a precisão, o \textit{recall} e o \textit{F1-score} por classe,
-a matriz de confusão e o acerto de direção. A decisão usa o $\arg\max$ da distribuição prevista. O acerto de direção considera apenas os \textit{candles} em que o símbolo real é $-1$ ou $+1$ e
-escolhe entre eles a classe de maior probabilidade, ignorando o 0, com intervalo de confiança de Wilson de 95\%. A direção é comparada à melhor constante (sempre $-1$ ou sempre $+1$), como descrito na Seção~\ref{subsec:modelos_ref}.
-
-\paragraph{Produto final.} A saída da execução é um par de arquivos em \texttt{relatorios/}, com nome \texttt{mtd\_<data da \textit{snapshot}>\_completa<sufixo>}: um relatório em Markdown (\texttt{.md}),
-legível, e um arquivo JSON (\texttt{.json}) com todos os números. Os valores citados neste trabalho saem do JSON, e o Markdown é gerado a partir dele. O relatório em Markdown contém:
-
-\begin{itemize}
-  \item \textbf{Fonte e parâmetros:} o resumo SHA-256 e o número de \textit{candles} da \textit{snapshot}, os parâmetros do MTD e as convenções de avaliação.
-  \item \textbf{Matrizes de resumo:} uma matriz por métrica, com uma linha por $k$ e uma coluna por modo e tamanho de bloco. Cada célula é uma configuração e mostra o MTD da ordem de menor BIC.
-  As métricas são: proporção de zeros no treino e no teste, log-verossimilhança por símbolo no teste, ganho sobre o modelo iid, acurácia em relação a ``sempre 0'', $F1$ médio das classes $-1$ e $+1$,
-  acerto de direção e margem da direção sobre a melhor constante.
-  \item \textbf{Verificações:} resumo do ajuste em todas as configurações, com a estabilidade dos reinícios, a ordem de menor BIC e o efeito das lacunas.
-  \item \textbf{Tabela completa:} uma linha por configuração, com os números exatos.
-  \item \textbf{Seções detalhadas:} só para as configurações indicadas em \texttt{-{}-detail}. Cada uma traz (1) a log-verossimilhança e o BIC dos modelos de referência, do MTD em cada ordem e do HMM;
-  (2) a previsão de um passo no teste, com acurácia, precisão, \textit{recall}, $F1$, matriz de confusão e direção; (3) a estrutura do MTD, com $\lambda$, $Q$, a distribuição estacionária e os tempos de memória
-  derivados dos autovalores de $Q$; (4) a estabilidade dos reinícios; (5) o efeito das lacunas no treino. As demais configurações constam apenas no JSON.
-\end{itemize}
-
-%3.4.3
-\subsection{Modelo Oculto de Markov em Numba}
-\label{sec:hmm_numba}
-
-O ajuste de um HMM pelo algoritmo de Baum-Welch exige, a cada iteração, percorrer a série inteira duas vezes, 
-uma com o algoritmo \textit{Forward} e outra com o \textit{Backward}, além de acumular as contagens 
-esperadas de transições e emissões. O custo de cada iteração cresce linearmente com o tamanho $T$ da série 
-e com o quadrado do número $N$ de estados \cite{Rabiner1989}. Com $T$ próximo de $900$ mil símbolos, centenas a milhares de 
-iterações por ajuste e dezenas de reinícios, uma implementação com laços em 
-Python puro tornaria os experimentos inviáveis.
-
-Por isso, o HMM foi implementado com a biblioteca Numba \cite{lam2015numba}, que compila funções escritas em 
-Python para código de máquina no momento da primeira execução (compilação \textit{just-in-time}). 
-Os laços que concentram o custo computacional foram escritos como funções compiladas, chamadas aqui de \textit{kernels}, 
-apresentadas no \autoref{tab:kernels_hmm}. 
-
-\begin{table}[htbp]
-    \centering
-    \caption{\textit{Kernels} compilados do HMM e sua função.}
-    \label{tab:kernels_hmm}
-    \small
-    \begin{tabular}{@{}p{0.3\textwidth}p{0.64\textwidth}@{}}
-        \toprule
-        \textbf{\textit{Kernel}} & \textbf{Função} \\
-        \midrule
-        \texttt{\_forward} & Algoritmo \textit{Forward} com escalonamento; devolve as probabilidades filtradas dos estados e a log-verossimilhança da sequência (problema de avaliação) \\
-        \texttt{\_backward} & Algoritmo \textit{Backward}, escalonado com os mesmos fatores do \textit{Forward} \\
-        \texttt{\_acumular\_paralelo} & Passo E do Baum-Welch: soma as transições e emissões esperadas \\
-        \texttt{\_m\_step} & Passo M do Baum-Welch: reestima $\pi$, $A$ e $B$ a partir das contagens esperadas (problema de aprendizado) \\
-        \texttt{\_viterbi} & Algoritmo de Viterbi \\
-        \bottomrule
-    \end{tabular}
-    \fonte{Elaborado pelos autores (2026).}
-\end{table}
-
-\paragraph{Estabilidade numérica.} As probabilidades calculadas pelos algoritmos \textit{Forward} e \textit{Backward} 
-são produtos de termos menores que um e em séries longas, ficam menores do que o menor 
-número representável pelo computador \cite{Rabiner1989,jm3}. Para evitar isso, a implementação adota o escalonamento 
-descrito por \citeonline{Rabiner1989}. As probabilidades do \textit{Forward} são normalizadas para somar um, 
-e o fator usado na normalização é guardado. 
-A log-verossimilhança da sequência é obtida pela soma dos logaritmos desses fatores, e o \textit{Backward} é 
-escalonado com os mesmos fatores, de modo que eles se cancelam no cálculo das contagens esperadas do passo E \cite{Rabiner1989}. 
-
-\paragraph{Inicialização e parada.} Cada reinício parte de valores de $\pi$, $A$ e $B$ sorteados aleatoriamente, com uma semente 
-própria, o que permite reproduzir exatamente cada ajuste. O Baum-Welch é interrompido quando a log-verossimilhança apresenta uma 
-melhora relativa abaixo de $10^{-8}$. Para que nenhuma probabilidade se torne exatamente zero, um valor mínimo 
-de $10^{-10}$ é imposto às células de $A$ e $B$ \cite{Rabiner1989}.  Ao final, mantém-se o reinício de maior 
-log-verossimilhança no conjunto de treinamento.
-
-\paragraph{Limitações da implementação.} A série de treinamento é tratada como uma única sequência contínua e as 
-transições entre os segmentos separados por lacunas são contadas como se os instantes fossem vizinhos. Como as 
-lacunas afetam uma fração muito pequena das transições, esse efeito é desprezível, mas é registrado como limitação. 
-Além disso, o Numba não verifica se os índices acessados estão dentro dos limites dos vetores e por isso, a 
-classe valida as sequências recebidas antes de repassá-las aos \textit{kernels}. A validação da implementação contra o 
-cálculo por força bruta e contra uma biblioteca de referência é descrita na Seção \ref{sec:garantia_qualidade}.
-
-%3.4.4
-\subsection{Garantia de qualidade}
-\label{sec:garantia_qualidade}
-
-Um erro em um índice ou em uma normalização não impede o código de executar, ele apenas produz números errados. Por isso, a correção da implementação 
-foi verificada de duas formas: testes automatizados para o pré-processamento e para as Cadeias de Markov, e uma bateria de validação específica para o HMM.
-
-\subsubsection{Testes automatizados.} O repositório conta com mais de 200 testes automatizados, executados com a ferramenta \texttt{pytest}.
-Na discretização, eles verificam principalmente que não há vazamento de informação do futuro, cada símbolo depende apenas de retornos anteriores a ele. 
-Nos modelos de referência e no MTD, os resultados são comparados com implementações independentes em Python puro, e verifica-se que o ajuste 
-recupera os parâmetros verdadeiros em sequências simuladas.
-
-\subsubsection{Validação do HMM.} O HMM foi validado de três formas. Primeiro, em sequências curtas, todos os caminhos de estados possíveis foram enumerados, 
-o que dá o valor exato da log-verossimilhança, das probabilidades dos estados e do caminho mais provável esses valores foram comparados com os da implementação. 
-Segundo, na série de treinamento inteira, os mesmos cálculos e uma iteração completa do Baum-Welch foram comparados com os da 
-biblioteca \texttt{hmmlearn} \cite{hmmlearn}. Terceiro, foram geradas séries simuladas a partir de um HMM com 
-parâmetros conhecidos, para verificar se o ajuste os recupera. Os resultados estão resumidos na \autoref{tab:validacao_hmm}.
-
-\begin{table}[htbp]
-    \centering
-    \caption{Resultados da validação da implementação do HMM.}
-    \label{tab:validacao_hmm}
-    \small
-    \begin{tabular}{@{}p{0.6\textwidth}p{0.34\textwidth}@{}}
-        \toprule
-        \textbf{Verificação} & \textbf{Resultado} \\
-        \midrule
-        Enumeração de todos os caminhos (20 modelos, sequências de 3 a 8 símbolos) & $1{,}8 \times 10^{-15}$ \\
-        Enumeração de todos os caminhos: caminho de Viterbi idêntico & 20 de 20 casos \\
-        \texttt{hmmlearn}: série de treinamento inteira, diferença na log-verossimilhança & $0{,}0$ \\
-        \texttt{hmmlearn}: caminho de Viterbi idêntico & $100\%$ dos instantes \\
-        \texttt{hmmlearn}: maior diferença em $A$ e $B$ após uma iteração do Baum-Welch & $2{,}7 \times 10^{-15}$ \\
-        Séries simuladas com o tamanho do treinamento: maior erro nas probabilidades de emissão & $0{,}13$ ponto percentual \\
-        \bottomrule
-    \end{tabular}
-    \fonte{Elaborado pelos autores (2026).}
-\end{table}
-
-As diferenças encontradas estão no nível do arredondamento numérico do computador, da ordem de $10^{-15}$, o que indica que a implementação calcula o 
-que o algoritmo define. Nas séries simuladas, o erro dos parâmetros estimados diminui à medida que a série cresce, como esperado para um 
-estimador de máxima verossimilhança. Com menos de cerca de 5 mil símbolos, porém, o ajuste deixa de ser confiável, o que limita o uso do 
-HMM em janelas curtas de dados.
-
-\section{Experimentos e cenário de testes}
-\label{sec:experimentos}
-
-\subsection{Avaliação fora da amostra}
-\label{sec:avaliacao_fora}
-
-Todos os modelos foram ajustados sobre os primeiros $95\%$ da série e avaliados sobre os $5\%$ mais recentes, que nunca foram usados no ajuste. 
-Na discretização principal, o conjunto de treinamento tem 905.654 símbolos, de setembro de 2017 a abril de 2026, e o conjunto de teste tem 47.893 símbolos, 
-cobrindo 167 dias entre abril e setembro de 2026, sem lacunas.
-
-Em cada instante do teste, cada modelo prevê o símbolo seguinte usando apenas os símbolos anteriores, ou seja, faz uma previsão de um passo à frente. 
-A previsão não é um único símbolo, mas uma probabilidade para cada um dos três símbolos. No início do teste, os modelos usam como passado os últimos símbolos do treinamento. 
-No HMM, as probabilidades dos estados no primeiro instante do teste partem da distribuição estacionária da matriz $A$, que indica a fração do tempo que o 
-modelo passa em cada estado no longo prazo. Para que as ordens do MTD sejam comparáveis entre si, todas são avaliadas exatamente sobre os mesmos instantes.
-
-A partir dessas previsões, são calculadas as métricas descritas na Seção~\ref{avaliacao}:
-\begin{itemize}
-    \item a log-verossimilhança por símbolo e o BIC.
-    \item o acerto de direção, isto é, a fração dos movimentos de alta ou de queda em que o modelo deu mais probabilidade ao sinal correto, 
-    com intervalo de confiança de $95\%$.
-    \item a matriz de confusão, a precisão, o \textit{recall} e o F1 das classes $-1$ e $1$.
-\end{itemize}
-
-As métricas de classificação exigem transformar as probabilidades em um único palpite. Para isso, são usadas duas regras de decisão: escolher o símbolo 
-de maior probabilidade, e escolher o símbolo cuja probabilidade prevista mais supera a sua frequência no conjunto de treinamento. A segunda regra compensa o 
-fato de o símbolo $0$ ser o mais frequente, o que faria a primeira regra prevê-lo quase sempre.
-
-\subsection{Cenários}
-\label{sec:cenarios}
-
-Os experimentos foram organizados nos cenários da \autoref{tab:cenarios}. O cenário principal compara todos os modelos na discretização principal. 
-Os demais verificam se as conclusões se mantêm quando a discretização, o período de teste ou a quantidade de dados de treinamento mudam.
-
-\begin{table}[htbp]
-    \centering
-    \caption{Cenários experimentais.}
-    \label{tab:cenarios}
-    \small
-    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.22\textwidth}>{\raggedright\arraybackslash}p{0.44\textwidth}>{\raggedright\arraybackslash}p{0.28\textwidth}@{}}
-        \toprule
-        \textbf{Cenário} & \textbf{O que varia} & \textbf{Modelos} \\
-        \midrule
-        Principal & Limiar adaptativo, $s/3$, blocos de 1 mês & Referências, MTD de ordem 1 a 10, HMM de 2 a 5 estados \\
-        Sensibilidade à discretização & Limiares $s/4$ e $s/5$; limiar fixo com $s/3$, $s/4$ e $s/5$; blocos de 3 meses & Referências, 
-        MTD (exceto blocos de 3 meses) e HMM de 2 a 4 estados \\
-        Estabilidade no tempo & Treinamento em 12 meses e teste nos 3 meses seguintes, em 32 janelas entre 2018 e 2026 & Frequências, 
-        cadeia de primeira ordem e HMM de 3 estados \\
-        Quantidade de dados & Treinamento apenas nos últimos 2 mil a 905 mil símbolos & Frequências, cadeia de primeira ordem e HMM de 2 a 4 estados \\
-        \bottomrule
-    \end{tabular}
-    \fonte{Elaborado pelos autores (2026).}
-\end{table}
-
-No MTD, o EM foi executado com tolerância de $10^{-8}$ e cinco reinícios por ordem. No HMM, foram usados 20, 50, 40 e 30 reinícios para 2, 3, 4 e 5 estados, 
-respectivamente, com limite de 3.000 iterações, ou 4.000 no modelo de 5 estados. Cada reinício foi executado em um processo separado, com uma única \textit{thread}, 
-e vários processos foram executados ao mesmo tempo. Os experimentos foram realizados em um computador com processador 
-Intel Core i5-1334U e 7,6 GB de memória, com Python 3.14, NumPy 2.5 e Numba 0.68.
-
-\subsection{Critérios de aceitação das hipóteses}
-\label{sec:criterios}
-
-Para que as hipóteses da Seção \ref{sec:hipotese} pudessem ser testadas de forma objetiva, cada uma foi associada a um critério mensurável no conjunto de teste.
-
-\paragraph{Hipótese principal.} A hipótese é aceita se o MTD, na ordem escolhida pelo BIC, obtiver F1 direcional, isto é, a média do F1 das 
-classes $-1$ e $1$, superior ao do modelo aleatório e ao do modelo de persistência, com diferença significativa pelo \textit{bootstrap} por dias. 
-A ordem a partir da qual a dependência temporal se torna relevante é a menor ordem cujo ganho de log-verossimilhança sobre a ordem anterior é significativo.
-
-\paragraph{Hipótese secundária.} A hipótese é aceita se o HMM obtiver log-verossimilhança no teste significativamente maior que a do MTD e a da cadeia de 
-primeira ordem, e F1 direcional pelo menos igual ao deles. O custo computacional é avaliado pelo tempo de ajuste de cada modelo, para julgar se o 
-ganho obtido justifica a maior complexidade.
-
-Além dos modelos previstos nas hipóteses, os resultados também são comparados com o modelo de frequências e com a cadeia de primeira ordem. 
-Essas referências são mais exigentes e permitem verificar se uma eventual vantagem sobre o modelo aleatório e o de persistência indica, de fato, 
-capacidade de prever a direção do próximo movimento.
-
 %3.5.4
 \subsection{Ambiente e reprodutibilidade}
 \label{subsec:ambiente}
 
-A coleta dos dados continua em andamento, e a API da Binance pode revisar ou perder registros (Seção~\ref{subsec:lacunas}). Por isso,
-uma consulta feita em outra data produziria uma série diferente. Para que os experimentos possam ser reproduzidos, fixamos o
-conjunto de dados em uma \textit{snapshot} da tabela \texttt{btc\_usdt}, congelada com data final 2026-10-01 (exclusiva). Ela contém
-os 957.853 \textit{candles} de 2017-08-17 04:00 até 2026-09-30 23:55 (UTC). Todos os resultados deste trabalho partem dela.
-O manifesto da \textit{snapshot} está no repositório do projeto e o arquivo de dados é publicado como anexo de uma versão (\textit{release})
-do repositório. Após a conclusão do trabalho, ela será disponibilizada gratuitamente. O repositório contém também os \textit{scripts}
-para gerá-la e recuperá-la, descritos a seguir.
+\section{Experimentos e cenário de testes (opcional)}
+\label{sec:experimentos}
 
-\paragraph{Geração.} O comando \texttt{export} lê a tabela \texttt{btc\_usdt} em modo somente leitura, seleciona os \textit{candles} com
-\texttt{open\_time} anterior à data final informada e os ordena por \texttt{open\_time}. A data final é obrigatória e exclusiva. 
-O resultado é um par de arquivos, \texttt{btc\_usdt\_2026-10-01.parquet} e \texttt{btc\_usdt\_2026-10-01.manifest.json}:
-
-\begin{itemize}
-  \item O arquivo Parquet guarda as 13 colunas da tabela com seus tipos originais (\textit{timestamp}, ponto flutuante, inteiro e texto), comprimidas
-  com zstd. Ocupa cerca de 46 MiB.
-  \item O manifesto é um arquivo JSON que descreve o conteúdo do Parquet: a tabela de origem, a data final, o número de linhas, o primeiro e o
-  último \texttt{open\_time}, as colunas, o formato, o momento da geração e o resumo SHA-256 do Parquet. Esse resumo muda se qualquer byte do
-  arquivo for alterado.
-\end{itemize}
-
-\paragraph{Recuperação.} O comando \texttt{restore} reconstrói a tabela a partir do Parquet, em um banco PostgreSQL local, sem acesso ao
-banco de produção. Ele executa os seguintes passos:
-
-\begin{enumerate}
-  \item Calcula o SHA-256 do Parquet e o compara com o do manifesto, antes de acessar o banco. Se forem diferentes, a operação é interrompida.
-  \item Confere se o esquema do Parquet é o esperado.
-  \item Dentro de uma única transação, cria as tabelas pelo \textit{script} \texttt{schema.sql} e carrega os dados com o comando \texttt{COPY}.
-  \item Ao final, compara o número de linhas e o período da tabela restaurada com os do manifesto. Se algum valor divergir, a transação é
-  desfeita e o banco permanece como estava.
-\end{enumerate}
-
-O \texttt{restore} só carrega os dados em uma tabela \texttt{btc\_usdt} vazia. Como ele usa a conexão definida no arquivo de configuração,
-essa regra impede que uma execução acidental altere o banco de produção. Os dois comandos são executados assim:
-
-\begin{verbatim}
-python -m database.snapshot export --ate 2026-10-01
-python -m database.snapshot restore snapshot/btc_usdt_2026-10-01.parquet
-\end{verbatim}
-
-Também é possível executar os experimentos sem o banco. O módulo de discretização e os \textit{scripts} de análise leem o Parquet
-diretamente (opção \texttt{-{}-snapshot}), após conferir o resumo SHA-256 contra o manifesto, de modo que os dados de entrada são
-verificados a cada execução.
-
-\paragraph{Ambiente.} O código foi desenvolvido em Python 3.14, e as dependências estão fixadas no arquivo \texttt{requirements.txt}.
-O processo de treinamento do MTD é estocástico por depender de reinícios do algoritmo EM, mas as sementes são fixas: cada reinício usa uma semente
-derivada de uma semente-base, o que torna os resultados repetíveis. O repositório inclui também testes automatizados, executados com \texttt{pytest}.
-
+Esta seção é \textbf{opcional} e deve ser incluída quando o trabalho prevê avaliação experimental. Descreva os cenários planejados, os parâmetros testados e por que cada experimento está alinhado aos objetivos. Liste os conjuntos de dados, as variações e o número de repetições.
 
 \section{Resultados e análises}
 \label{sec:resultados}
+
+Os resultados desta seção vêm do relatório final do MTD, que cobre 60 configurações de discretização (limiares $s/k$, com $k$ de 1 a 10, nos modos \textit{Global} e \textit{Blocks} com $n$ de 1, 2, 3, 6 e 12 meses). Em cada uma, o MTD foi ajustado nas ordens 1 a 10, com 10 reinícios do algoritmo EM por ordem, e avaliado nos mesmos 5\% finais da série (de 2026-04-17 a 2026-09-30), junto aos modelos de referência. Duas perguntas orientam a análise: (i) o MTD prevê melhor que os modelos de referência o que acontece no próximo candle (ficar parado ou se mover)? (ii) quando o candle se move, ele indica o sentido do movimento com desempenho superior? Antes de interpretar o desempenho, a Tabela~\ref{tab:mtd_robustez} descarta que o resultado venha de falha de ajuste: todos os 6.000 reinícios convergem para a mesma solução, e as transições que atravessam lacunas alteram a log-verossimilhança por símbolo em no máximo 0,000116 nats.
+
+\begin{table}[htb]
+  \centering
+  \caption{Verificações de que o resultado não vem de falha de ajuste}
+  \label{tab:mtd_robustez}
+  \small
+  \begin{tabular}{lr}
+    \toprule
+    Verificação & Resultado \\
+    \midrule
+    Reinícios do EM na mesma solução (±1 nat) & 6.000 de 6.000 \\
+    Reinícios que convergiram & 6.000 de 6.000 \\
+    Maior diferença entre o melhor e o pior reinício & 0,108 nats \\
+    Efeito das transições que atravessam lacunas (LL/símbolo) & $\leq$ 0,000116 nats \\
+    \bottomrule
+  \end{tabular}
+  \legend{Fonte: Elaborado pelos autores (2026). 60 configurações, ordens 1 a 10, 10 reinícios por ordem.}
+\end{table}
+
+
+\subsection{Pergunta (i): prever se o mercado se move}
+
+O MTD supera a distribuição iid em verossimilhança em todas as configurações, mas por pouco. O ganho por símbolo fica entre 0,0172 e 0,1063 nats (mediana 0,0403), o que equivale a explicar, em mediana, apenas 3,66\% da entropia do modelo iid (Tabela~\ref{tab:mtd_resumo}). O BIC também não ajuda a escolher uma estrutura: a ordem de menor BIC é a máxima testada (10) nas 60 configurações, isto é, a verossimilhança cresce a cada lag adicionado, sem um mínimo interno, e os pesos de lag decaem lentamente (0,134 no lag 1 e 0,083 no lag 10, na configuração \textit{Blocks} de 1 mês com $s/3$). Esse é o perfil de uma memória longa e difusa, e não de uma dependência de ordem finita bem definida.
+
+\begin{table}[htb]
+  \centering
+  \caption{Resumo do MTD nas 60 configurações de discretização}
+  \label{tab:mtd_resumo}
+  \small
+  \begin{tabular}{lrrr}
+    \toprule
+    Medida & Mínimo & Mediana & Máximo \\
+    \midrule
+    Ganho de LL sobre o iid (nats/símbolo) & 0,0172 & 0,0403 & 0,1063 \\
+    Fração da entropia do iid explicada & 1,68\% & 3,66\% & 25,61\% \\
+    \midrule
+    Direção do MTD & 47,85\% & 51,20\% & 51,71\% \\
+    Direção da cadeia de 1ª ordem & 49,97\% & 51,46\% & 51,79\% \\
+    Direção da persistência & 48,23\% & 48,64\% & 49,80\% \\
+    Melhor constante (sempre $-1$ ou sempre $+1$) & 50,00\% & 50,37\% & 51,69\% \\
+    Margem do MTD sobre a melhor constante (p.p.) & -3,85 & +0,82 & +1,54 \\
+    MTD menos cadeia de 1ª ordem (p.p.) & -3,16 & -0,21 & +0,16 \\
+    \midrule
+    Ordem de menor BIC igual à máxima testada (10) & \multicolumn{3}{c}{60 de 60} \\
+    IC 95\% do MTD acima da melhor constante & \multicolumn{3}{c}{41 de 60} \\
+    Significativo contra a melhor constante ($p<0{,}05$) & \multicolumn{3}{c}{47 de 60} \\
+    Idem, com correção de Bonferroni ($p<0{,}05/60$) & \multicolumn{3}{c}{26 de 60} \\
+    MTD com direção acima da cadeia de 1ª ordem & \multicolumn{3}{c}{6 de 60} \\
+    \bottomrule
+  \end{tabular}
+  \legend{Fonte: Elaborado pelos autores (2026). MTD da ordem de menor BIC em cada configuração. Teste unilateral (aproximação normal) do acerto de direção contra a melhor constante.}
+\end{table}
+
+
+Em acurácia, o resultado depende da discretização. Com limiares grandes ($s/1$ e $s/2$), a maioria dos símbolos é 0 e o MTD praticamente empata com o modelo que sempre prevê 0: em \textit{Blocks} de 1 mês com $s/1$ ele acerta 80,34\% contra 80,36\%, e no modo \textit{Global} com $s/1$, 95,43\% contra 95,44\%. Nos limiares seguintes, o MTD passa a superar a classe majoritária do teste: nos modos \textit{Blocks}, de $s/3$ em diante, a diferença vai de 0,9 a 8,7 pontos percentuais (por exemplo, 47,1\% contra 43,8\% em \textit{Blocks} de 1 mês com $s/3$, e 41,6\% contra 35,0\% em \textit{Blocks} de 3 meses com $s/5$); no modo \textit{Global}, só a partir de $s/5$. Esse ganho, porém, é de volatilidade: a Tabela~\ref{tab:mtd_volatilidade_direcao} mostra que, quando o MTD prevê movimento, ele acerta 72,9\% das vezes em \textit{Blocks} de 1 mês com $s/3$ (a base de candles que se movem é 56,2\%) e 60,7\% em \textit{Global} com $s/3$ (base de 32,0\%), mas esse acerto não se converte em direção: a coluna \textit{Dir. MTD} fica sempre próxima de 51\% e é praticamente igual à da cadeia de 1ª ordem.
+
+\begin{table}[htb]
+  \centering
+  \caption{Onde o MTD acerta: volatilidade e não direção}
+  \label{tab:mtd_volatilidade_direcao}
+  \footnotesize
+  \begin{tabular}{lrrrrrrr}
+    \toprule
+    Configuração & \shortstack[r]{Mov.\\real} & \shortstack[r]{Prec.\\mov.} & \shortstack[r]{Acur.\\MTD} & \shortstack[r]{Classe\\maj.} & \shortstack[r]{Dir.\\MTD} & \shortstack[r]{Dir. 1ª\\ordem} & \shortstack[r]{Melhor\\const.} \\
+    \midrule
+    \textit{Blocks}, 1 mês, $s/3$ & 56,2\% & 72,9\% & 47,1\% & 43,8\% & 51,17\% & 51,21\% & 50,86\% \\
+    \textit{Blocks}, 3 meses, $s/3$ & 49,3\% & 68,8\% & 51,6\% & 50,7\% & 51,24\% & 51,33\% & 50,14\% \\
+    \textit{Blocks}, 12 meses, $s/3$ & 49,3\% & 69,2\% & 51,6\% & 50,7\% & 51,57\% & 51,68\% & 50,71\% \\
+    \textit{Blocks}, 3 meses, $s/5$ & 65,0\% & 73,5\% & 41,6\% & 35,0\% & 51,44\% & 51,31\% & 50,23\% \\
+    \textit{Blocks}, 3 meses, $s/10$ & 80,5\% & 81,4\% & 42,0\% & 40,3\% & 51,35\% & 51,47\% & 50,03\% \\
+    \textit{Global}, $s/3$ & 32,0\% & 60,7\% & 67,5\% & 68,0\% & 50,44\% & 50,95\% & 50,52\% \\
+    \textit{Global}, $s/5$ & 50,4\% & 67,3\% & 50,3\% & 49,6\% & 51,71\% & 51,79\% & 50,76\% \\
+    \bottomrule
+  \end{tabular}
+  \legend{Fonte: Elaborado pelos autores (2026). Mov. real: fração dos \textit{candles} de teste com símbolo $\pm1$. Prec. mov.: fração das previsões de movimento do MTD que de fato foram movimento. Dir.: acerto de direção entre os \textit{candles} que se moveram.}
+\end{table}
+
+
+\subsection{Pergunta (ii): prever a direção}
+
+Para medir a direção, o modelo é obrigado a escolher entre $-1$ e $+1$ nos candles que de fato se moveram (regra que ignora o 0). Na configuração \textit{Blocks} de 1 mês com $s/3$, 26.903 candles de teste se moveram, 13.682 de queda e 13.221 de alta, e o MTD da ordem 10 acerta 51,17\% (IC de 95\%: 50,58\% a 51,77\%), enquanto a cadeia de 1ª ordem acerta 51,21\% e a persistência, 48,79\%. O mesmo padrão aparece nas 60 configurações (Tabela~\ref{tab:mtd_resumo}):
+\begin{itemize}
+  \item a direção do MTD varia de 47,85\% a 51,71\% (mediana 51,20\%), e a margem sobre a melhor constante (sempre $-1$ ou sempre $+1$) tem mediana de apenas 0,82 ponto percentual e máximo de 1,54;
+  \item a persistência fica sempre abaixo de 50\% (de 48,23\% a 49,80\%), ou seja, repetir o sinal anterior erra mais que acerta: depois de um $-1$ o próximo movimento é $+1$ em 51,2\% dos casos, e depois de um $+1$ o próximo é $-1$ em 53,3\% (\textit{Blocks} de 1 mês, $s/3$, teste);
+  \item a cadeia de 1ª ordem já captura essa reversão e iguala o MTD: a direção do MTD supera a da cadeia de 1ª ordem em apenas 6 das 60 configurações, com diferença mediana de $-0{,}21$ ponto percentual e máxima de $+0{,}16$, abaixo do erro padrão de cerca de 0,3 ponto percentual.
+\end{itemize}
+
+É preciso ser preciso quanto ao que isso significa. Contra a melhor constante, a margem do MTD é estatisticamente detectável em boa parte das configurações: o IC de 95\% fica acima dela em 41 das 60, e em 26 delas a diferença permanece significativa mesmo com a correção de Bonferroni para 60 comparações (Tabela~\ref{tab:mtd_resumo}). Esses testes supõem observações independentes, o que a série não satisfaz (a volatilidade se agrupa), e por isso tendem a ser otimistas. Mas, mesmo aceitando-os, o ponto central é outro: a margem (no máximo 1,54 ponto percentual) já existe na cadeia de 1ª ordem. A memória longa, que é o que o MTD acrescenta, não traz informação direcional. A Tabela~\ref{tab:mtd_ordem} deixa isso explícito: de uma ordem para dez, a log-verossimilhança no teste sobe de $-1{,}0600$ para $-1{,}0236$ (ganho sobre o iid de 0,0154 para 0,0517 nats) e o BIC cai de 1.934.138 para 1.870.879, enquanto a direção permanece em 51,2\% (51,21\% na ordem 1, 51,17\% na ordem 10).
+
+\begin{table}[htb]
+  \centering
+  \caption{Mais memória aumenta a verossimilhança, mas não a direção (\textit{Blocks}, $n=1$ mês, limiar $s/3$)}
+  \label{tab:mtd_ordem}
+  \small
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Modelo & Parâm. & \shortstack[r]{LL/símbolo\\(teste)} & \shortstack[r]{Ganho\\s/ iid} & \shortstack[r]{BIC\\(treino)} & \shortstack[r]{Direção\\(teste)} \\
+    \midrule
+    Frequências do treino (iid) & 2 & -1,0753 & 0,0000 & 1.958.146 & 49,14\% \\
+    MTD de ordem 1 & 6 & -1,0600 & 0,0154 & 1.934.138 & 51,21\% \\
+    MTD de ordem 2 & 7 & -1,0506 & 0,0248 & 1.917.559 & 51,53\% \\
+    MTD de ordem 3 & 8 & -1,0440 & 0,0313 & 1.905.689 & 51,41\% \\
+    MTD de ordem 5 & 10 & -1,0354 & 0,0399 & 1.890.299 & 51,51\% \\
+    MTD de ordem 10 & 15 & -1,0236 & 0,0517 & 1.870.879 & 51,17\% \\
+    HMM com 3 estados & 14 & -1,0154 & 0,0599 & 1.858.005 & 50,13\% \\
+    \bottomrule
+  \end{tabular}
+  \legend{Fonte: Elaborado pelos autores (2026). LL em nats por símbolo; ganho sobre as frequências do treino (iid).}
+\end{table}
+
+
+\subsection{Por que os dados não sustentam o MTD}
+
+Os resultados convergem para uma explicação que vem dos próprios dados, e não do modelo ou do ajuste.
+
+\textbf{A dependência está na volatilidade, não na direção.} Os retornos financeiros são em geral não autocorrelacionados linearmente, mas apresentam agrupamento de volatilidade \cite{morettin2018analise}. Na discretização em três símbolos, isso significa que a sequência de $\pm1$ e 0 é previsível quanto a haver ou não movimento, mas quase imprevisível quanto ao sentido. É exatamente o que a Tabela~\ref{tab:mtd_volatilidade_direcao} mostra: o MTD detecta movimento com precisão de 60,7\% a 81,4\% (bem acima da base nas configurações em que o movimento é minoria) e acerta o sentido em cerca de 51\%. O ganho de verossimilhança também cai à medida que o limiar diminui (em \textit{Blocks} de 1 mês, de 0,0673 nats em $s/1$ para 0,0172 em $s/10$): quando os símbolos $\pm1$ passam a incluir movimentos pequenos, a parte previsível (a alternância entre calma e agitação) fica diluída. O HMM de 3 estados reforça a leitura. Na única configuração em que foi comparado (\textit{Blocks} de 1 mês, $s/3$), ele obtém verossimilhança maior que a do MTD da ordem 10 ($-1{,}0154$ contra $-1{,}0236$ por símbolo) e BIC menor (1.858.005 contra 1.870.879) com um parâmetro a menos (14 contra 15), mas acerta a direção em 50,13\% e nunca prevê $+1$: seus estados capturam regimes de volatilidade, não de direção (Tabela~\ref{tab:mtd_ordem}). Um modelo cuja ordem ``ótima'' é sempre a máxima, e que perde em verossimilhança para um modelo de poucos estados latentes, está aproximando um regime de volatilidade com muitos lags.
+
+\textbf{O pouco de direção que existe é reversão de curtíssimo prazo.} A direção do MTD e a da cadeia de 1ª ordem coincidem, e a persistência (que prevê o oposto) fica abaixo de 50\%. Isso é compatível com ruído de microestrutura em alta frequência \cite{jjfinec}, no qual movimentos pequenos de um candle tendem a ser parcialmente desfeitos no seguinte. Como esse efeito se esgota no lag 1, ordens maiores não o ampliam.
+
+\textbf{A série não é estacionária, e isso contamina até o ganho aparente.} A Tabela~\ref{tab:mtd_estacionariedade} mostra que, no modo \textit{Global} com $s/3$, a proporção de zeros salta de 51,02\% no treino para 67,96\% no teste, porque o período de teste é menos volátil que a média histórica; ao longo dos anos, essa proporção varia de 31,47\% (2017) a 67,73\% (2023). Justamente nesse modo o ganho de verossimilhança é o maior (0,1059 nats, contra 0,0454 a 0,0669 nos modos \textit{Blocks}), o que indica que parte do ``ganho'' é o MTD condicionando no contexto recente para se ajustar ao nível de volatilidade, e não a descoberta de uma dependência estável entre símbolos. O modo \textit{Blocks} reduz o deslocamento (de $+0{,}40$ a $+5{,}83$ pontos percentuais), mas não o elimina, e a direção continua em torno de 51\% em todos os tamanhos de bloco.
+
+\begin{table}[htb]
+  \centering
+  \caption{A volatilidade do teste difere da do treino (limiar $s/3$)}
+  \label{tab:mtd_estacionariedade}
+  \small
+  \begin{tabular}{lrrrr}
+    \toprule
+    Discretização & Zeros (treino) & Zeros (teste) & Variação (p.p.) & Ganho de LL s/ iid \\
+    \midrule
+    \textit{Global} & 51,02\% & 67,96\% & +16,94 & 0,1059 \\
+    \textit{Blocks}, 1 mês & 42,33\% & 43,83\% & +1,49 & 0,0517 \\
+    \textit{Blocks}, 2 meses & 44,03\% & 48,35\% & +4,32 & 0,0669 \\
+    \textit{Blocks}, 3 meses & 44,83\% & 50,65\% & +5,83 & 0,0530 \\
+    \textit{Blocks}, 6 meses & 47,58\% & 47,98\% & +0,40 & 0,0464 \\
+    \textit{Blocks}, 12 meses & 49,90\% & 50,68\% & +0,77 & 0,0454 \\
+    \bottomrule
+  \end{tabular}
+  \legend{Fonte: Elaborado pelos autores (2026). Ganho de LL em nats por símbolo, do MTD da ordem de menor BIC.}
+\end{table}
+
+
+\subsection{Conclusão sobre a hipótese}
+
+A hipótese principal afirma que a sequência de movimentos do Bitcoin apresenta dependência temporal suficiente para que uma Cadeia de Markov (o MTD) preveja a direção do próximo movimento com desempenho superior ao dos modelos ingênuos. Os resultados não sustentam essa hipótese, e por três razões independentes. Primeiro, a margem de direção sobre a melhor constante é de no máximo 1,54 ponto percentual (mediana de 0,82), e a do MTD sobre a persistência decorre de a persistência errar sistematicamente: não há sinal direcional relevante nesta discretização. Segundo, o pouco que existe é capturado já pela cadeia de 1ª ordem, de modo que a memória longa, que justifica o MTD, não acrescenta nada em direção: o MTD supera a 1ª ordem em 6 de 60 configurações. Terceiro, o que o MTD de fato modela é o agrupamento de volatilidade, e isso não responde à pergunta de direção; o BIC, que escolhe a ordem máxima em todas as configurações, e o desempenho superior do HMM de 3 estados em verossimilhança indicam que essa dependência é melhor descrita por regimes latentes do que por lags aditivos. Rejeita-se, portanto, a hipótese de que o MTD seja superior aos modelos de referência para prever a direção; para a pergunta (i), o MTD só se distingue do modelo ``sempre 0'' (ou da classe majoritária) a partir de $s/3$ nos modos \textit{Blocks}, e então por detectar volatilidade, não direção.
+
+Como limitações, os testes de significância assumem independência entre candles, a avaliação cobre cerca de cinco meses de teste e um único ativo, e não houve análise econômica (custos de transação e \textit{spreads}), de modo que a margem de cerca de 1 ponto percentual não deve ser lida como oportunidade de negociação. A validade dessa conclusão também se restringe à discretização em três símbolos, que descarta a magnitude dos retornos.
 
 Apresente os resultados com tabelas, gráficos e figuras e, sobretudo, \textbf{analise-os} à luz da revisão bibliográfica e da hipótese --- resultados devem ser analisados, não apenas exibidos. Diferencie:
 \begin{itemize}
